@@ -8,22 +8,55 @@ import "github.com/wreulicke/go-sandbox/go-interpreter/monkey/ast"
 
 import "fmt"
 
+type Precedence int
+
+const (
+	_ Precedence = iota
+	LOWEST
+	EQUALS
+	LESSGREATER
+	SUM
+	PRODUCT
+	PREFIX
+	CALL
+)
+
+type (
+	prefixParseFn func() ast.Expression
+	infixParseFn  func(ast.Expression) ast.Expression
+)
+
 type Parser struct {
 	l         *lexer.Lexer
 	errors    []error
 	curToken  token.Token
 	peekToken token.Token
+
+	prefixParseFns map[token.TokenType]prefixParseFn
+	infixParseFns  map[token.TokenType]infixParseFn
 }
 
 func New(l *lexer.Lexer) *Parser {
 	p := &Parser{
-		l:      l,
-		errors: []error{},
+		l:              l,
+		errors:         []error{},
+		prefixParseFns: map[token.TokenType]prefixParseFn{},
+		infixParseFns:  map[token.TokenType]infixParseFn{},
 	}
+	p.registerPrefix(token.IDENT, p.parseIdentifier)
 	p.nextToken()
 	p.nextToken()
 	return p
 }
+
+func (p *Parser) registerPrefix(t token.TokenType, fn prefixParseFn) {
+	p.prefixParseFns[t] = fn
+}
+
+func (p *Parser) registerInfix(t token.TokenType, fn infixParseFn) {
+	p.infixParseFns[t] = fn
+}
+
 func (p *Parser) Errors() []error {
 	return p.errors
 }
@@ -60,8 +93,28 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.RETURN:
 		return p.parseReturnStatement()
 	default:
+		return p.parseExpressionStatement()
+	}
+}
+
+func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	stmt := &ast.ExpressionStatement{Token: p.curToken}
+	stmt.Expression = p.parseExpression(LOWEST)
+
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
+}
+
+func (p *Parser) parseExpression(pre Precedence) ast.Expression {
+	prefix := p.prefixParseFns[p.curToken.Type]
+	if prefix == nil {
 		return nil
 	}
+	leftExp := prefix()
+	return leftExp
 }
 
 func (p *Parser) parseReturnStatement() ast.Statement {
@@ -95,6 +148,10 @@ func (p *Parser) parseLetStatement() ast.Statement {
 	}
 
 	return stmt
+}
+
+func (p *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 }
 
 func (p *Parser) curTokenIs(t token.TokenType) bool {

@@ -1,10 +1,58 @@
 package parser
 
-import "testing"
+import (
+	"testing"
 
-import "github.com/wreulicke/go-sandbox/go-interpreter/monkey/lexer"
+	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/ast"
+	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/lexer"
+)
 
-import "github.com/wreulicke/go-sandbox/go-interpreter/monkey/ast"
+func TestParsingPrefixExpressions(t *testing.T) {
+	prefixTests := []struct {
+		input    string
+		operator string
+		value    string
+	}{
+		{"!5", "!", "5"},
+		{"-5", "-", "5"},
+	}
+	for _, tt := range prefixTests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.Parse()
+		checkParserErrors(t, p)
+		if len(program.Statements) != 1 {
+			t.Fatalf("program does not contain %d statements. got=%d", 1, len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+		}
+		exp, ok := stmt.Expression.(*ast.PrefixExpression)
+		if !ok {
+			t.Fatalf("stmt is not ast.PrefixExpression. got=%T", stmt.Expression)
+		}
+		if exp.Operator != tt.operator {
+			t.Fatalf("exp.Operator is not '%s'. got=%s", tt.operator, exp.Operator)
+		}
+		if !testNumberLiteral(t, exp.Right, tt.value) {
+			return
+		}
+	}
+}
+func testNumberLiteral(t *testing.T, il ast.Expression, value string) bool {
+	l, ok := il.(*ast.NumberLiteral)
+	if !ok {
+		t.Errorf("il not ast.NumberLiteral. got=%T", il)
+		return false
+	}
+	if l.Value != value {
+		t.Errorf("l.Value not %s. got=%s", l.Value, value)
+		return false
+	}
+	return true
+}
 
 func TestNumberLiteralExpression(t *testing.T) {
 	input := "5;"

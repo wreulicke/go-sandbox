@@ -108,6 +108,42 @@ func (i *Identifier) String() string {
 	return i.Value
 }
 
+type PrefixExpression struct {
+	expression
+	Token    token.Token
+	Operator string
+	Right    Expression
+}
+
+func (pe *PrefixExpression) TokenLiteral() string {
+	return pe.Token.Literal
+}
+
+func (pe *PrefixExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteRune('(')
+	out.WriteString(pe.Operator)
+	out.WriteString(pe.Right.String())
+	out.WriteRune(')')
+
+	return out.String()
+}
+
+type NumberLiteral struct {
+	expression
+	Token token.Token
+	Value string
+}
+
+func (i *NumberLiteral) TokenLiteral() string {
+	return i.Token.Literal
+}
+
+func (i *NumberLiteral) String() string {
+	return i.Value
+}
+
 type Node interface {
 	TokenLiteral() string
 	String() string

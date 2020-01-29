@@ -212,7 +212,7 @@ func (l *Lexer) NextToken() token.Token {
 			return l.newToken(token.LookupIdent(l.TokenText()))
 		} else if isDigit(next) {
 			l.readNumber(next)
-			return l.newToken(token.INT)
+			return l.newToken(token.NUMBER)
 		}
 		return l.newToken(token.ILLEGAL)
 	}

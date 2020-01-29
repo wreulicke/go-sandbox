@@ -12,7 +12,7 @@ const (
 	EOF
 
 	IDENT
-	INT
+	NUMBER
 
 	ASSIGN
 	PLUS

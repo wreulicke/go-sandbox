@@ -6,6 +6,28 @@ import "github.com/wreulicke/go-sandbox/go-interpreter/monkey/lexer"
 
 import "github.com/wreulicke/go-sandbox/go-interpreter/monkey/ast"
 
+func TestNumberLiteralExpression(t *testing.T) {
+	input := "5;"
+	l := lexer.New(input)
+	p := New(l)
+	program := p.Parse()
+	checkParserErrors(t, p)
+	if len(program.Statements) != 1 {
+		t.Fatalf("program has not enough statements. got=%d", len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+	literal, ok := stmt.Expression.(*ast.NumberLiteral)
+	if !ok {
+		t.Fatalf("exp not *ast.NumberLiteral. got=%T", stmt.Expression)
+	}
+	if literal.TokenLiteral() != "5" {
+		t.Errorf("literal.TokenLiteral not %s. got=%s", "foobar", literal.TokenLiteral())
+	}
+}
+
 func TestIdentifierExpression(t *testing.T) {
 	input := "foobar;"
 	l := lexer.New(input)

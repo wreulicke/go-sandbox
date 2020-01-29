@@ -52,7 +52,6 @@ func (l *Lexer) Next() rune {
 	l.position.column += w
 	l.offset += w
 	l.buffer.WriteRune(r)
-	fmt.Println("next", string(r))
 	return r
 }
 

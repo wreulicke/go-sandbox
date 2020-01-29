@@ -8,7 +8,7 @@ type Token struct {
 }
 
 const (
-	ILLEGAL = iota
+	ILLEGAL TokenType = iota
 	EOF
 
 	IDENT

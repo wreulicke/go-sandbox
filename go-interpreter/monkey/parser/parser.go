@@ -143,7 +143,7 @@ func (p *Parser) parseLetStatement() ast.Statement {
 	}
 
 	// TODO: セミコロンに遭遇するまで式を読み飛ばしまっている
-	for !p.curTokenIs(token.ASSIGN) {
+	for !p.curTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
 

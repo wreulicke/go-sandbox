@@ -219,6 +219,13 @@ func (l *Lexer) NextToken() token.Token {
 	}
 }
 
+func (l *Lexer) newToken(tokenType token.TokenType) token.Token {
+	return token.Token{
+		Type:    tokenType,
+		Literal: l.TokenText(),
+	}
+}
+
 func runeLen(lead byte) int {
 	if lead < 0xC0 {
 		return 1
@@ -229,18 +236,10 @@ func runeLen(lead byte) int {
 	}
 	return 4
 }
-
 func isLetter(ch rune) bool {
 	return 'a' <= ch && ch <= 'z' || 'A' <= ch && 'Z' <= ch || ch == '_'
 }
 
 func isDigit(ch rune) bool {
 	return '0' <= ch && ch <= '9'
-}
-
-func (l *Lexer) newToken(tokenType token.TokenType) token.Token {
-	return token.Token{
-		Type:    tokenType,
-		Literal: l.TokenText(),
-	}
 }

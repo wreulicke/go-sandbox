@@ -1,8 +1,11 @@
 package ast
 
-import "github.com/wreulicke/go-sandbox/go-interpreter/monkey/token"
+import (
+	"bytes"
+	"strings"
 
-import "bytes"
+	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/token"
+)
 
 type Program struct {
 	Statements []Statement
@@ -228,6 +231,32 @@ func (b *BooleanLiteral) TokenLiteral() string {
 
 func (b *BooleanLiteral) String() string {
 	return b.Token.Literal
+}
+
+type FunctionLiteral struct {
+	expression
+	Token      token.Token
+	Parameters []*Identifier
+	Body       *BlockStatement
+}
+
+func (fl *FunctionLiteral) TokenLiteral() string {
+	return fl.Token.Literal
+}
+
+func (fl *FunctionLiteral) String() string {
+	var out bytes.Buffer
+
+	params := []string{}
+	for _, p := range fl.Parameters {
+		params = append(params, p.String())
+	}
+	out.WriteString(fl.TokenLiteral())
+	out.WriteRune('(')
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(") ")
+	out.WriteString(fl.Body.String())
+	return out.String()
 }
 
 type Node interface {

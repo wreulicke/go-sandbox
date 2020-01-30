@@ -166,6 +166,19 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	return stmt
 }
 
+func (p *Parser) parseBlockStatement() *ast.BlockStatement {
+	b := &ast.BlockStatement{Token: p.curToken, Statements: []ast.Statement{}}
+	p.nextToken()
+	for !p.curTokenIs(token.RBRACE) && !p.curTokenIs(token.EOF) {
+		stmt := p.parseStatement()
+		if stmt != nil {
+			b.Statements = append(b.Statements, stmt)
+		}
+		p.nextToken()
+	}
+	return b
+}
+
 func (p *Parser) parseExpression(pre Precedence) ast.Expression {
 	prefix := p.prefixParseFns[p.curToken.Type]
 	if prefix == nil {
@@ -209,18 +222,6 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	return e
 }
 
-func (p *Parser) parseIdentifier() ast.Expression {
-	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
-}
-
-func (p *Parser) parseNumberLiteral() ast.Expression {
-	return &ast.NumberLiteral{Token: p.curToken, Value: p.curToken.Literal}
-}
-
-func (p *Parser) parseBooleanLiteral() ast.Expression {
-	return &ast.BooleanLiteral{Token: p.curToken, Value: p.curTokenIs(token.TRUE)}
-}
-
 func (p *Parser) parseGroupedExpression() ast.Expression {
 	p.nextToken()
 
@@ -257,17 +258,16 @@ func (p *Parser) parseIfExpression() ast.Expression {
 	return e
 }
 
-func (p *Parser) parseBlockStatement() *ast.BlockStatement {
-	b := &ast.BlockStatement{Token: p.curToken, Statements: []ast.Statement{}}
-	p.nextToken()
-	for !p.curTokenIs(token.RBRACE) && !p.curTokenIs(token.EOF) {
-		stmt := p.parseStatement()
-		if stmt != nil {
-			b.Statements = append(b.Statements, stmt)
-		}
-		p.nextToken()
-	}
-	return b
+func (p *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+}
+
+func (p *Parser) parseNumberLiteral() ast.Expression {
+	return &ast.NumberLiteral{Token: p.curToken, Value: p.curToken.Literal}
+}
+
+func (p *Parser) parseBooleanLiteral() ast.Expression {
+	return &ast.BooleanLiteral{Token: p.curToken, Value: p.curTokenIs(token.TRUE)}
 }
 
 func (p *Parser) curTokenIs(t token.TokenType) bool {

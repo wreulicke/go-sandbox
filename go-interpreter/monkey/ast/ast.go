@@ -130,6 +130,32 @@ func (pe *PrefixExpression) String() string {
 	return out.String()
 }
 
+type InfixExpression struct {
+	expression
+	Token    token.Token
+	Left     Expression
+	Operator string
+	Right    Expression
+}
+
+func (pe *InfixExpression) TokenLiteral() string {
+	return pe.Token.Literal
+}
+
+func (pe *InfixExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteRune('(')
+	out.WriteString(pe.Left.String())
+	out.WriteRune(' ')
+	out.WriteString(pe.Operator)
+	out.WriteRune(' ')
+	out.WriteString(pe.Right.String())
+	out.WriteRune(')')
+
+	return out.String()
+}
+
 type NumberLiteral struct {
 	expression
 	Token token.Token
@@ -142,6 +168,20 @@ func (i *NumberLiteral) TokenLiteral() string {
 
 func (i *NumberLiteral) String() string {
 	return i.Value
+}
+
+type BooleanLiteral struct {
+	expression
+	Token token.Token
+	Value bool
+}
+
+func (b *BooleanLiteral) TokenLiteral() string {
+	return b.Token.Literal
+}
+
+func (b *BooleanLiteral) String() string {
+	return b.Token.Literal
 }
 
 type Node interface {

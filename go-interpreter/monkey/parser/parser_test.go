@@ -7,6 +7,128 @@ import (
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/lexer"
 )
 
+func TestOperatorPrecedenceParsing(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{
+			"-a * b",
+			"((-a) * b)",
+		},
+		{
+			"!-a",
+			"(!(-a))",
+		},
+		{
+			"a + b + c",
+			"((a + b) + c)",
+		},
+		{
+			"a + b - c",
+			"((a + b) - c)",
+		},
+		{
+			"a * b * c",
+			"((a * b) * c)",
+		},
+		{
+			"a * b / c",
+			"((a * b) / c)",
+		},
+		{
+			"a + b / c",
+			"(a + (b / c))",
+		},
+		{
+			"a + b * c + d / e - f",
+			"(((a + (b * c)) + (d / e)) - f)",
+		},
+		{
+			"3 + 4; -5 * 5",
+			"(3 + 4)((-5) * 5)",
+		},
+		{
+			"true",
+			"true",
+		},
+		{
+			"false",
+			"false",
+		},
+		{
+			"5 > 4 == 3 < 4",
+			"((5 > 4) == (3 < 4))",
+		},
+		{
+			"5 > 4 != 3 < 4",
+			"((5 > 4) != (3 < 4))",
+		},
+		{
+			"3 + 4 * 5 == 3 * 1 + 4 * 5",
+			"((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
+		},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.Parse()
+		checkParserErrors(t, p)
+		actual := program.String()
+		if actual != tt.expected {
+			t.Errorf("expected=%q, got=%q", tt.expected, actual)
+		}
+	}
+}
+
+func TestParsingInfixExpression(t *testing.T) {
+	infixTests := []struct {
+		input      string
+		leftValue  string
+		operator   string
+		rightValue string
+	}{
+		{"5 + 5", "5", "+", "5"},
+		{"5 - 5", "5", "-", "5"},
+		{"5 * 5", "5", "*", "5"},
+		{"5 / 5", "5", "/", "5"},
+		{"5 > 5", "5", ">", "5"},
+		{"5 < 5", "5", "<", "5"},
+		{"5 == 5", "5", "==", "5"},
+		{"5 != 5", "5", "!=", "5"},
+	}
+
+	for _, tt := range infixTests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.Parse()
+		checkParserErrors(t, p)
+		if len(program.Statements) != 1 {
+			t.Fatalf("program does not contain %d statements. got=%d", 1, len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+		}
+		exp, ok := stmt.Expression.(*ast.InfixExpression)
+		if !ok {
+			t.Fatalf("stmt is not ast.InfixExpression. got=%T", stmt.Expression)
+		}
+		if exp.Operator != tt.operator {
+			t.Fatalf("exp.Operator is not '%s'. got=%s", tt.operator, exp.Operator)
+		}
+		if !testNumberLiteral(t, exp.Left, tt.leftValue) {
+			return
+		}
+		if !testNumberLiteral(t, exp.Right, tt.rightValue) {
+			return
+		}
+	}
+
+}
+
 func TestParsingPrefixExpressions(t *testing.T) {
 	prefixTests := []struct {
 		input    string
@@ -89,16 +211,7 @@ func TestIdentifierExpression(t *testing.T) {
 	if !ok {
 		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
 	}
-	ident, ok := stmt.Expression.(*ast.Identifier)
-	if !ok {
-		t.Fatalf("exp not *ast.Identifier. got=%T", stmt.Expression)
-	}
-	if ident.Value != "foobar" {
-		t.Errorf("ident.Value not %s. got=%s", "foobar", ident.Value)
-	}
-	if ident.TokenLiteral() != "foobar" {
-		t.Errorf("ident.TokenLiteral not %s. got=%s", "foobar", ident.TokenLiteral())
-	}
+	testIdentifier(t, stmt.Expression, "foobar")
 }
 
 func TestReturnStatement(t *testing.T) {
@@ -159,6 +272,23 @@ let foobar = 838383;
 			return
 		}
 	}
+}
+
+func testIdentifier(t *testing.T, exp ast.Expression, value string) bool {
+	ident, ok := exp.(*ast.Identifier)
+	if !ok {
+		t.Fatalf("exp not *ast.Identifier. got=%T", exp)
+		return false
+	}
+	if ident.Value != "foobar" {
+		t.Errorf("ident.Value not %s. got=%s", "foobar", ident.Value)
+		return false
+	}
+	if ident.TokenLiteral() != "foobar" {
+		t.Errorf("ident.TokenLiteral not %s. got=%s", "foobar", ident.TokenLiteral())
+		return false
+	}
+	return true
 }
 
 func testLetStatement(t *testing.T, s ast.Statement, name string) bool {

@@ -80,6 +80,24 @@ func (rs *ReturnStatement) String() string {
 	return out.String()
 }
 
+type BlockStatement struct {
+	statement
+	Token      token.Token
+	Statements []Statement
+}
+
+func (ie *BlockStatement) TokenLiteral() string {
+	return ie.Token.Literal
+}
+
+func (p *BlockStatement) String() string {
+	var out bytes.Buffer
+	for _, s := range p.Statements {
+		out.WriteString(s.String())
+	}
+	return out.String()
+}
+
 type ExpressionStatement struct {
 	statement
 	Token      token.Token
@@ -95,20 +113,6 @@ func (es *ExpressionStatement) String() string {
 		return es.Expression.String()
 	}
 	return ""
-}
-
-type Identifier struct {
-	expression
-	Token token.Token
-	Value string
-}
-
-func (i *Identifier) TokenLiteral() string {
-	return i.Token.Literal
-}
-
-func (i *Identifier) String() string {
-	return i.Value
 }
 
 type PrefixExpression struct {
@@ -187,22 +191,18 @@ func (ie *IfExpression) String() string {
 	return out.String()
 }
 
-type BlockStatement struct {
-	statement
-	Token      token.Token
-	Statements []Statement
+type Identifier struct {
+	expression
+	Token token.Token
+	Value string
 }
 
-func (ie *BlockStatement) TokenLiteral() string {
-	return ie.Token.Literal
+func (i *Identifier) TokenLiteral() string {
+	return i.Token.Literal
 }
 
-func (p *BlockStatement) String() string {
-	var out bytes.Buffer
-	for _, s := range p.Statements {
-		out.WriteString(s.String())
-	}
-	return out.String()
+func (i *Identifier) String() string {
+	return i.Value
 }
 
 type NumberLiteral struct {

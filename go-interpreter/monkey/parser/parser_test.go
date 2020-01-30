@@ -9,6 +9,72 @@ import (
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/token"
 )
 
+func TestCallExpression(t *testing.T) {
+	input := "add(1, 2 * 3, 4 + 5);"
+	l := lexer.New(input)
+	p := New(l)
+	program := p.Parse()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program does not contain %d statements. got=%d", 1, len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+	call, ok := stmt.Expression.(*ast.CallExpression)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.CallExpression. got=%T", stmt.Expression)
+	}
+	if !testIdentifier(t, call.Function, "add") {
+		return
+	}
+
+	if len(call.Arguments) != 3 {
+		t.Fatalf("function arguments wrong. want 3, got =%d", len(call.Arguments))
+	}
+	testExpression(t, call.Arguments[0], &ast.NumberLiteral{
+		Token: token.Token{
+			Type:    token.NUMBER,
+			Literal: "1",
+		},
+		Value: "1",
+	})
+	testInfixExpression(t, call.Arguments[1],
+		&ast.NumberLiteral{
+			Token: token.Token{
+				Type:    token.NUMBER,
+				Literal: "2",
+			},
+			Value: "2",
+		},
+		"*",
+		&ast.NumberLiteral{
+			Token: token.Token{
+				Type:    token.NUMBER,
+				Literal: "3",
+			},
+			Value: "3",
+		})
+	testInfixExpression(t, call.Arguments[2],
+		&ast.NumberLiteral{
+			Token: token.Token{
+				Type:    token.NUMBER,
+				Literal: "4",
+			},
+			Value: "4",
+		},
+		"+",
+		&ast.NumberLiteral{
+			Token: token.Token{
+				Type:    token.NUMBER,
+				Literal: "5",
+			},
+			Value: "5",
+		})
+}
+
 func TestFunctionLiteralParsing(t *testing.T) {
 	input := "fn(x, y) { x + y; }"
 
@@ -429,6 +495,58 @@ return 993322;
 		}
 	}
 
+}
+
+func TestLetStatements(t *testing.T) {
+	tests := []struct {
+		input              string
+		expectedIdentifier string
+		expectedValue      ast.Expression
+	}{
+		{"let x = 5;", "x", &ast.NumberLiteral{
+			Token: token.Token{
+				Type:    token.NUMBER,
+				Literal: "5",
+			},
+			Value: "5",
+		}},
+
+		{"let y = true;", "y", &ast.BooleanLiteral{
+			Token: token.Token{
+				Type:    token.TRUE,
+				Literal: "true",
+			},
+			Value: true,
+		}},
+
+		{"let foobar = y;", "foobar", &ast.Identifier{
+			Token: token.Token{
+				Type:    token.IDENT,
+				Literal: "y",
+			},
+			Value: "y",
+		}},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.Parse()
+		checkParserErrors(t, p)
+		if len(program.Statements) != 1 {
+			t.Fatalf("program does not contain %d statements. got=%d", 1, len(program.Statements))
+		}
+
+		stmt := program.Statements[0]
+		if !testLetStatement(t, stmt, tt.expectedIdentifier) {
+			continue
+		}
+
+		val := stmt.(*ast.LetStatement).Value
+		if !testExpression(t, val, tt.expectedValue) {
+			continue
+		}
+	}
 }
 
 func TestLetStatement(t *testing.T) {

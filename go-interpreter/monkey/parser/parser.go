@@ -1,12 +1,12 @@
 package parser
 
-import "github.com/wreulicke/go-sandbox/go-interpreter/monkey/lexer"
+import (
+	"fmt"
 
-import "github.com/wreulicke/go-sandbox/go-interpreter/monkey/token"
-
-import "github.com/wreulicke/go-sandbox/go-interpreter/monkey/ast"
-
-import "fmt"
+	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/ast"
+	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/lexer"
+	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/token"
+)
 
 type Precedence int
 

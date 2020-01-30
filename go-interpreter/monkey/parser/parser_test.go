@@ -9,6 +9,67 @@ import (
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/token"
 )
 
+func TestFunctionLiteralParsing(t *testing.T) {
+	input := "fn(x, y) { x + y; }"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.Parse()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program does not contain %d statements. got=%d", 1, len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+	fn, ok := stmt.Expression.(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.FunctionLiteral. got=%T", stmt.Expression)
+	}
+	if len(fn.Parameters) != 2 {
+		t.Fatalf("function literal parameters wrong. want 2, got =%d", len(fn.Parameters))
+	}
+	testExpression(t, fn.Parameters[0], &ast.Identifier{
+		Token: token.Token{
+			Type:    token.IDENT,
+			Literal: "x",
+		},
+		Value: "x",
+	})
+	testExpression(t, fn.Parameters[1], &ast.Identifier{
+		Token: token.Token{
+			Type:    token.IDENT,
+			Literal: "y",
+		},
+		Value: "y",
+	})
+	if len(fn.Body.Statements) != 1 {
+		t.Fatalf("fn.Body has not 1 statements. got=%d", len(fn.Body.Statements))
+	}
+	bodyStmt, ok := fn.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("function body is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+	testInfixExpression(t, bodyStmt.Expression,
+		&ast.Identifier{
+			Token: token.Token{
+				Type:    token.IDENT,
+				Literal: "x",
+			},
+			Value: "x",
+		},
+		"+",
+		&ast.Identifier{
+			Token: token.Token{
+				Type:    token.IDENT,
+				Literal: "y",
+			},
+			Value: "y",
+		})
+}
+
 func TestIfExpression(t *testing.T) {
 	input := `if (x < y) { x }`
 	l := lexer.New(input)

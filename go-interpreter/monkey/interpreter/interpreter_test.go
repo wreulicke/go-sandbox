@@ -8,6 +8,30 @@ import (
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/parser"
 )
 
+func TestIfElseExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{"if(true) { 10 }", 10},
+		{"if(false) { 10 }", nil},
+		{"if (1) { 1 }", 1},
+		{"if (1 < 2) { 10 }", 10},
+		{"if (1 > 2) { 10 }", nil},
+		{"if (1 > 2) { 10 } else { 20 }", 20},
+		{"if (1 < 2) { 10 } else { 20 }", 10},
+	}
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		if v, ok := tt.expected.(int); ok {
+			testIntegerObject(t, evaluated, int64(v))
+		} else {
+			testNullObject(t, evaluated)
+		}
+	}
+
+}
+
 func TestEvalBangOperator(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -118,4 +142,12 @@ func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
 		return false
 	}
 	return true
+}
+
+func testNullObject(t *testing.T, obj object.Object) bool {
+	if obj == NULL {
+		return true
+	}
+	t.Errorf("object is not NULL. got=%T (%+v)", obj, obj)
+	return false
 }

@@ -24,6 +24,8 @@ func Eval(node ast.Node) object.Object {
 	case *ast.PrefixExpression:
 		right := Eval(node.Right)
 		return evalPrefixExpression(node.Operator, right)
+	case *ast.IfExpression:
+		return evalIfExpression(node)
 	case *ast.InfixExpression:
 		left := Eval(node.Left)
 		right := Eval(node.Right)
@@ -46,6 +48,29 @@ func evalStatements(stmts []ast.Statement) object.Object {
 	}
 
 	return result
+}
+
+func evalIfExpression(ie *ast.IfExpression) object.Object {
+	cond := Eval(ie.Condition)
+	if isTruthy(cond) {
+		return Eval(ie.Consequence)
+	} else if ie.Alternative != nil {
+		return Eval(ie.Alternative)
+	}
+	return NULL
+}
+
+func isTruthy(o object.Object) bool {
+	switch o {
+	case TRUE:
+		return true
+	case FALSE:
+		return false
+	case NULL:
+		return false
+	default:
+		return true
+	}
 }
 
 func evalInfixExpression(operator string, left object.Object, right object.Object) object.Object {

@@ -7,6 +7,7 @@ import (
 	"github.com/c-bata/go-prompt"
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/interpreter"
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/lexer"
+	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/object"
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/parser"
 )
 
@@ -24,8 +25,8 @@ func Start() {
 				printParseError(p.Errors())
 				return
 			}
-
-			o := interpreter.Eval(program)
+			env := object.NewEnvironment()
+			o := interpreter.Eval(program, env)
 			if o != nil {
 				fmt.Println(o.Inspect())
 			}

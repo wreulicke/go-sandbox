@@ -5,15 +5,25 @@ func NewEnvironment() *Environment {
 }
 
 type Environment struct {
-	store map[string]Object
+	store  map[string]Object
+	parent *Environment
 }
 
 func (e *Environment) Get(name string) (Object, bool) {
 	obj, ok := e.store[name]
+	if !ok {
+		return e.parent.Get(name)
+	}
 	return obj, ok
 }
 
 func (e *Environment) Set(name string, object Object) Object {
 	e.store[name] = object
 	return object
+}
+
+func (e *Environment) NewEnclosedEnvironment() *Environment {
+	newEnv := NewEnvironment()
+	newEnv.parent = e
+	return newEnv
 }

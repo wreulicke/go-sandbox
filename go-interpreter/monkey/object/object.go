@@ -13,6 +13,7 @@ const (
 	INTEGER ObjectType = iota
 	BOOLEAN
 	NULL
+	RETURN
 )
 
 type Integer struct {
@@ -48,4 +49,16 @@ func (b *Null) Type() ObjectType {
 
 func (b *Null) Inspect() string {
 	return "null"
+}
+
+type ReturnValue struct {
+	Value Object
+}
+
+func (rv *ReturnValue) Type() ObjectType {
+	return RETURN
+}
+
+func (rv *ReturnValue) Inspect() string {
+	return rv.Value.Inspect()
 }

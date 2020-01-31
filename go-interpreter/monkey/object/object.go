@@ -10,21 +10,21 @@ type Object interface {
 }
 
 const (
-	NUMBER ObjectType = iota
+	INTEGER ObjectType = iota
 	BOOLEAN
 	NULL
 )
 
-type Number struct {
-	Value string
+type Integer struct {
+	Value int64
 }
 
-func (n *Number) Type() ObjectType {
-	return NUMBER
+func (n *Integer) Type() ObjectType {
+	return INTEGER
 }
 
-func (n *Number) Inspect() string {
-	return n.Value
+func (n *Integer) Inspect() string {
+	return fmt.Sprintf("%d", n.Value)
 }
 
 type Boolean struct {

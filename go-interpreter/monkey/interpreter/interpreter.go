@@ -65,6 +65,13 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return &object.Integer{Value: i}
 	case *ast.BooleanLiteral:
 		return nativeBoolToBooleanObject(node.Value)
+	case *ast.FunctionLiteral:
+		f := &object.Function{
+			Parameters: node.Parameters,
+			Body:       node.Body,
+			Env:        env,
+		}
+		return f
 	}
 	return newError("Unsupported ast.Node got=%T", node)
 }

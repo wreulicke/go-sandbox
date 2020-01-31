@@ -9,6 +9,28 @@ import (
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/parser"
 )
 
+func TestFunctionApplication(t *testing.T) {
+}
+
+func TestFunctionObject(t *testing.T) {
+	input := "fn(x) { x + 2; };"
+	evaluated := testEval(input)
+	fn, ok := evaluated.(*object.Function)
+	if !ok {
+		t.Fatalf("object is not Function. got=%t (%+v)", evaluated, evaluated)
+	}
+	if len(fn.Parameters) != 1 {
+		t.Fatalf("function has wrong parameters. Parameters=%v", fn.Parameters)
+	}
+	if fn.Parameters[0].String() != "x" {
+		t.Fatalf("parameter is not 'x'. got=%q", fn.Parameters[0])
+	}
+	expectedBody := "(x + 2)"
+	if fn.Body.String() != expectedBody {
+		t.Errorf("body is not %q. got=%q", expectedBody, fn.Body.String())
+	}
+}
+
 func TestLetStatements(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -19,14 +41,16 @@ func TestLetStatements(t *testing.T) {
 		{"let a = 5; let b = a; b", 5},
 		{"let a = 5; let b = a; let c = a + b + 5; c", 15},
 		{`
-			if (10 > 1) {
-				if (10 > 1) {
-					return 10
+			let x = 15
+			let y = 10
+			if (x == 15) {
+				let y = 0
+				if (y == 10) {
+					return 15
 				}
-				return 1
-			}`,
-			10,
-		},
+			}
+			return y
+		`, 10},
 	}
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
@@ -242,7 +266,8 @@ func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
 	program := p.Parse()
-	return Eval(program)
+	env := object.NewEnvironment()
+	return Eval(program, env)
 }
 
 func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {

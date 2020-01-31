@@ -2,9 +2,16 @@ package object
 
 import "fmt"
 
+import "github.com/wreulicke/go-sandbox/go-interpreter/monkey/ast"
+
+import "bytes"
+
+import "strings"
+
 var typeNames = []string{
 	"INTEGER",
 	"BOOLEAN",
+	"FUNCTION",
 	"NULL",
 	"RETURN",
 	"ERROR",
@@ -24,6 +31,7 @@ type Object interface {
 const (
 	INTEGER ObjectType = iota
 	BOOLEAN
+	FUNCTION
 	NULL
 	RETURN
 	ERROR
@@ -86,4 +94,29 @@ func (e *Error) Type() ObjectType {
 
 func (e *Error) Inspect() string {
 	return "ERROR: " + e.Message
+}
+
+type Function struct {
+	Parameters []*ast.Identifier
+	Body       *ast.BlockStatement
+	Env        *Environment
+}
+
+func (f *Function) Type() ObjectType {
+	return FUNCTION
+}
+
+func (f *Function) Inspect() string {
+	var out bytes.Buffer
+
+	params := []string{}
+	for _, v := range f.Parameters {
+		params = append(params, v.String())
+	}
+	out.WriteString("fn(")
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(") {\n")
+	out.WriteString(f.Body.String())
+	out.WriteString("\n}")
+	return out.String()
 }

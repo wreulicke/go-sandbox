@@ -52,6 +52,12 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return right
 		}
 		return evalInfixExpression(node.Operator, left, right)
+	case *ast.CallExpression:
+		fn := Eval(node.Function, env)
+		if isError(fn) {
+			return fn
+		}
+		return evalCallExpression(fn, node.Arguments, env)
 	case *ast.Identifier:
 		if v, ok := env.Get(node.Value); ok {
 			return v
@@ -74,6 +80,42 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return f
 	}
 	return newError("Unsupported ast.Node got=%T", node)
+}
+
+func evalCallExpression(fn object.Object, parametres []ast.Expression, env *object.Environment) object.Object {
+	function, ok := fn.(*object.Function)
+	if !ok {
+		return newError("not a function: %s", fn.Type())
+	}
+
+	var args []object.Object
+	for _, e := range parametres {
+		evaluated := Eval(e, env)
+		if isError(evaluated) {
+			return evaluated
+		}
+		args = append(args, evaluated)
+	}
+	functionEnv := extendFunctionEnv(function, args)
+	return unwrapReturnValue(Eval(function.Body, functionEnv))
+}
+
+func extendFunctionEnv(function *object.Function, args []object.Object) *object.Environment {
+	env := function.Env.NewEnclosedEnvironment()
+
+	for paramIdx, param := range function.Parameters {
+		env.Set(param.Value, args[paramIdx])
+	}
+	return env
+}
+
+func unwrapReturnValue(o object.Object) object.Object {
+	switch o := o.(type) {
+	case *object.ReturnValue:
+		return o.Value
+	default:
+		return o
+	}
 }
 
 func evalProgram(stmts []ast.Statement, env *object.Environment) object.Object {

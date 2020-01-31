@@ -2,7 +2,19 @@ package object
 
 import "fmt"
 
+var typeNames = []string{
+	"INTEGER",
+	"BOOLEAN",
+	"NULL",
+	"RETURN",
+	"ERROR",
+}
+
 type ObjectType int
+
+func (o ObjectType) String() string {
+	return typeNames[o]
+}
 
 type Object interface {
 	Type() ObjectType
@@ -14,6 +26,7 @@ const (
 	BOOLEAN
 	NULL
 	RETURN
+	ERROR
 )
 
 type Integer struct {
@@ -61,4 +74,16 @@ func (rv *ReturnValue) Type() ObjectType {
 
 func (rv *ReturnValue) Inspect() string {
 	return rv.Value.Inspect()
+}
+
+type Error struct {
+	Message string
+}
+
+func (e *Error) Type() ObjectType {
+	return ERROR
+}
+
+func (e *Error) Inspect() string {
+	return "ERROR: " + e.Message
 }

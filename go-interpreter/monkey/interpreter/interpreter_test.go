@@ -1,12 +1,122 @@
 package interpreter
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/lexer"
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/object"
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/parser"
 )
+
+func TestLetStatements(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"let a = 5; a;", 5},
+		{"let a = 5 * 5; a;", 25},
+		{"let a = 5; let b = a; b", 5},
+		{"let a = 5; let b = a; let c = a + b + 5; c", 15},
+		{`
+			if (10 > 1) {
+				if (10 > 1) {
+					return 10
+				}
+				return 1
+			}`,
+			10,
+		},
+	}
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testIntegerObject(t, evaluated, tt.expected)
+	}
+
+}
+
+func TestErrorHandling(t *testing.T) {
+	tests := []struct {
+		input           string
+		expectedMessage string
+	}{
+		{
+			"5 + true",
+			"type mismatch: INTEGER + BOOLEAN",
+		},
+		{
+			"5 + true; 5",
+			"type mismatch: INTEGER + BOOLEAN",
+		},
+		{
+			"-true",
+			"unknown operator: -BOOLEAN",
+		},
+		{
+			"true + false",
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+		{
+			"5; true + false; 5",
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+		{
+			"if(10 > 1) { true + false }",
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+		{`
+			if (10 > 1) {
+				if (10 > 1) {
+					return true + false
+				}
+				return 1
+			}`,
+			"unknown operator: BOOLEAN + BOOLEAN",
+		},
+	}
+	for i, tt := range tests {
+		tt := tt
+		t.Run(fmt.Sprintf("tests[%d]", i), func(t *testing.T) {
+			evaluated := testEval(tt.input)
+			errObj, ok := evaluated.(*object.Error)
+			if !ok {
+				t.Log(tt.input)
+				t.Errorf("no error object returned. got=%T(%+v)", evaluated, evaluated)
+				return
+			}
+			if errObj.Message != tt.expectedMessage {
+				t.Log(tt.input)
+				t.Errorf("wrong error message. expected=%q, got=%q", tt.expectedMessage, errObj.Message)
+			}
+		})
+	}
+
+}
+
+func TestReturnStatement(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{"return 10;", 10},
+		{"return 10; 9", 10},
+		{"return 2 * 5; 9", 10},
+		{"9; return 2 * 5; 9;", 10},
+		{`
+			if (10 > 1) {
+				if (10 > 1) {
+					return 10
+				}
+				return 1
+			}`,
+			10,
+		},
+	}
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testIntegerObject(t, evaluated, tt.expected)
+	}
+}
 
 func TestIfElseExpressions(t *testing.T) {
 	tests := []struct {

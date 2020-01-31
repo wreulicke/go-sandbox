@@ -1,6 +1,7 @@
 package interpreter
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/ast"
@@ -16,35 +17,77 @@ var (
 func Eval(node ast.Node) object.Object {
 	switch node := node.(type) {
 	case *ast.Program:
-		return evalStatements(node.Statements)
+		return evalProgram(node.Statements)
 	case *ast.BlockStatement:
-		return evalStatements(node.Statements)
+		return evalBlockStatements(node.Statements)
 	case *ast.ExpressionStatement:
 		return Eval(node.Expression)
+	case *ast.ReturnStatement:
+		val := Eval(node.ReturnValue)
+		if isError(val) {
+			return val
+		}
+		return &object.ReturnValue{Value: val}
 	case *ast.PrefixExpression:
 		right := Eval(node.Right)
+		if isError(right) {
+			return right
+		}
 		return evalPrefixExpression(node.Operator, right)
 	case *ast.IfExpression:
 		return evalIfExpression(node)
 	case *ast.InfixExpression:
 		left := Eval(node.Left)
+		if isError(left) {
+			return left
+		}
 		right := Eval(node.Right)
+		if isError(right) {
+			return right
+		}
 		return evalInfixExpression(node.Operator, left, right)
 	case *ast.NumberLiteral:
-		i, _ := strconv.ParseInt(node.Value, 10, 64)
+		i, err := strconv.ParseInt(node.Value, 10, 64)
+		if err != nil {
+			return newError("cannot convert int. %s", node.Value)
+		}
 		return &object.Integer{Value: i}
 	case *ast.BooleanLiteral:
 		return nativeBoolToBooleanObject(node.Value)
 	}
-
-	return nil
+	return newError("Unsupported ast.Node got=%T", node)
 }
 
-func evalStatements(stmts []ast.Statement) object.Object {
+func evalProgram(stmts []ast.Statement) object.Object {
 	var result object.Object
 
 	for _, s := range stmts {
 		result = Eval(s)
+		switch v := result.(type) {
+		case *object.ReturnValue:
+			return v.Value
+		case *object.Error:
+			return v
+		}
+	}
+
+	return result
+
+}
+
+func evalBlockStatements(stmts []ast.Statement) object.Object {
+	var result object.Object
+
+	for _, s := range stmts {
+		result = Eval(s)
+		if result != nil {
+			switch result.Type() {
+			case object.RETURN:
+				return result
+			case object.ERROR:
+				return result
+			}
+		}
 	}
 
 	return result
@@ -52,6 +95,9 @@ func evalStatements(stmts []ast.Statement) object.Object {
 
 func evalIfExpression(ie *ast.IfExpression) object.Object {
 	cond := Eval(ie.Condition)
+	if isError(cond) {
+		return cond
+	}
 	if isTruthy(cond) {
 		return Eval(ie.Consequence)
 	} else if ie.Alternative != nil {
@@ -81,8 +127,10 @@ func evalInfixExpression(operator string, left object.Object, right object.Objec
 		return nativeBoolToBooleanObject(left == right)
 	case operator == "!=":
 		return nativeBoolToBooleanObject(left != right)
+	case left.Type() != right.Type():
+		return newError("type mismatch: %s %s %s", left.Type(), operator, right.Type())
 	default:
-		return NULL
+		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
 }
 
@@ -107,7 +155,7 @@ func evalIntegerInfixExpression(operator string, left object.Object, right objec
 	case "!=":
 		return nativeBoolToBooleanObject(leftValue != rightValue)
 	default:
-		return NULL
+		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
 }
 
@@ -118,13 +166,13 @@ func evalPrefixExpression(operator string, right object.Object) object.Object {
 	case "-":
 		return evalMinusPrefixOperatorExpression(right)
 	default:
-		return NULL
+		return newError("unknown operator: %s%s", operator, right.Type())
 	}
 }
 
 func evalMinusPrefixOperatorExpression(right object.Object) object.Object {
 	if right.Type() != object.INTEGER {
-		return NULL
+		return newError("unknown operator: -%s", right.Type())
 	}
 	value := right.(*object.Integer).Value
 	return &object.Integer{Value: -value}
@@ -148,4 +196,12 @@ func nativeBoolToBooleanObject(b bool) object.Object {
 		return TRUE
 	}
 	return FALSE
+}
+
+func newError(format string, a ...interface{}) *object.Error {
+	return &object.Error{Message: fmt.Sprintf(format, a...)}
+}
+
+func isError(obj object.Object) bool {
+	return obj != nil && obj.Type() == object.ERROR
 }

@@ -34,11 +34,6 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return val
 		}
 		return env.Set(node.Name.Value, val)
-	case *ast.Identifier:
-		if v, ok := env.Get(node.Value); ok {
-			return v
-		}
-		return newError("identifier is not found: %s", node.Value)
 	case *ast.PrefixExpression:
 		right := Eval(node.Right, env)
 		if isError(right) {
@@ -57,6 +52,11 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return right
 		}
 		return evalInfixExpression(node.Operator, left, right)
+	case *ast.Identifier:
+		if v, ok := env.Get(node.Value); ok {
+			return v
+		}
+		return newError("identifier is not found: %s", node.Value)
 	case *ast.NumberLiteral:
 		i, err := strconv.ParseInt(node.Value, 10, 64)
 		if err != nil {

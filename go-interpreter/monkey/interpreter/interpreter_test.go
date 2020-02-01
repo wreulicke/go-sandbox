@@ -9,6 +9,19 @@ import (
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/parser"
 )
 
+func TestStringConcatenation(t *testing.T) {
+	input := `"Hello"+ " " + "World"`
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	if str.Value != "Hello World" {
+		t.Errorf("String was wrong value. got=%q", str.Value)
+	}
+}
+
 func TestStringLiteral(t *testing.T) {
 	input := `"Hello World"`
 	evaluated := testEval(input)
@@ -139,6 +152,10 @@ func TestErrorHandling(t *testing.T) {
 		{
 			"foobar",
 			"identifier is not found: foobar",
+		},
+		{
+			`"Hello" - "World"`,
+			"unknown operator: STRING - STRING",
 		},
 	}
 	for i, tt := range tests {

@@ -31,13 +31,13 @@ if (5 < 10) {
 		{token.LET, "let"},
 		{token.IDENT, "five"},
 		{token.ASSIGN, "="},
-		{token.INT, "5"},
+		{token.NUMBER, "5"},
 		{token.SEMICOLON, ";"},
 		// declare ten
 		{token.LET, "let"},
 		{token.IDENT, "ten"},
 		{token.ASSIGN, "="},
-		{token.INT, "10"},
+		{token.NUMBER, "10"},
 		{token.SEMICOLON, ";"},
 		// declare add
 		{token.LET, "let"},
@@ -75,22 +75,22 @@ if (5 < 10) {
 		{token.MINUS, "-"},
 		{token.SLASH, "/"},
 		{token.ASTERISK, "*"},
-		{token.INT, "5"},
+		{token.NUMBER, "5"},
 		{token.SEMICOLON, ";"},
 		//
-		{token.INT, "5"},
+		{token.NUMBER, "5"},
 		{token.LT, "<"},
-		{token.INT, "10"},
+		{token.NUMBER, "10"},
 		{token.GT, ">"},
-		{token.INT, "5"},
+		{token.NUMBER, "5"},
 		{token.SEMICOLON, ";"},
 
 		//
 		{token.IF, "if"},
 		{token.LPAREN, "("},
-		{token.INT, "5"},
+		{token.NUMBER, "5"},
 		{token.LT, "<"},
-		{token.INT, "10"},
+		{token.NUMBER, "10"},
 		{token.RPAREN, ")"},
 		{token.LBRACE, "{"},
 		{token.RETURN, "return"},
@@ -105,13 +105,13 @@ if (5 < 10) {
 		{token.RBRACE, "}"},
 
 		//
-		{token.INT, "10"},
+		{token.NUMBER, "10"},
 		{token.EQ, "=="},
-		{token.INT, "10"},
+		{token.NUMBER, "10"},
 		{token.SEMICOLON, ";"},
-		{token.INT, "10"},
+		{token.NUMBER, "10"},
 		{token.NOT_EQ, "!="},
-		{token.INT, "9"},
+		{token.NUMBER, "9"},
 		{token.SEMICOLON, ";"},
 
 		//

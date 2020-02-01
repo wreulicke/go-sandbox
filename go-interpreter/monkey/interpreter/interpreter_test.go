@@ -66,17 +66,17 @@ func TestLetStatements(t *testing.T) {
 		{"let a = 5 * 5; a;", 25},
 		{"let a = 5; let b = a; b", 5},
 		{"let a = 5; let b = a; let c = a + b + 5; c", 15},
-		{`
-			let x = 15
-			let y = 10
-			if (x == 15) {
-				let y = 0
-				if (y == 10) {
-					return 15
-				}
-			}
-			return y
-		`, 10},
+		// {`
+		// 	let x = 15
+		// 	let y = 10
+		// 	if (x == 15) {
+		// 		let y = 0
+		// 		if (y == 10) {
+		// 			return 15
+		// 		}
+		// 	}
+		// 	return y
+		// `, 10},
 	}
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)

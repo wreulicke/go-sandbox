@@ -3,13 +3,18 @@ package cli
 import (
 	"github.com/spf13/cobra"
 
+	interpreterRepl "github.com/wreulicke/go-sandbox/go-interpreter/monkey/interpreter/repl"
 	lexerRepl "github.com/wreulicke/go-sandbox/go-interpreter/monkey/lexer/repl"
 	parserRepl "github.com/wreulicke/go-sandbox/go-interpreter/monkey/parser/repl"
 )
 
 func New() *cobra.Command {
 	c := &cobra.Command{
-		Use: "monkey",
+		Use:   "monkey",
+		Short: "monkey interpreter",
+		Run: func(cmd *cobra.Command, args []string) {
+			interpreterRepl.Start()
+		},
 	}
 	c.AddCommand(NewLexerCommand(), NewParserCommand())
 	return c
@@ -18,7 +23,7 @@ func New() *cobra.Command {
 func NewLexerCommand() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "lexer",
-		Short: "l",
+		Short: "lexer repl",
 		Run: func(cmd *cobra.Command, args []string) {
 			lexerRepl.Start()
 		},
@@ -29,7 +34,7 @@ func NewLexerCommand() *cobra.Command {
 func NewParserCommand() *cobra.Command {
 	c := &cobra.Command{
 		Use:   "parser",
-		Short: "p",
+		Short: "parser repl",
 		Run: func(cmd *cobra.Command, args []string) {
 			parserRepl.Start()
 		},

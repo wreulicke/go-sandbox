@@ -24,6 +24,7 @@ if (5 < 10) {
 10 != 9;
 "test"
 "test test"
+[1, 2];
 `
 	tests := []struct {
 		expectedType    token.TokenType
@@ -115,8 +116,18 @@ if (5 < 10) {
 		{token.NOT_EQ, "!="},
 		{token.NUMBER, "9"},
 		{token.SEMICOLON, ";"},
+		//
 		{token.STRING, "test"},
+		//
 		{token.STRING, "test test"},
+
+		//
+		{token.LBRACKET, "["},
+		{token.NUMBER, "1"},
+		{token.COMMA, ","},
+		{token.NUMBER, "2"},
+		{token.RBRACKET, "]"},
+		{token.SEMICOLON, ";"},
 
 		//
 		{token.EOF, ""},
@@ -127,7 +138,7 @@ if (5 < 10) {
 		tok := l.NextToken()
 
 		if tok.Type != tt.expectedType {
-			t.Fatalf("tests[%d] - token type wrong. expected=%d, got=%d expectedLiteral: %s gotLiteral: %s", i, tt.expectedType, tok.Type, tt.expectedLiteral, tok.Literal)
+			t.Fatalf("tests[%d] - token type wrong. expected=%s, got=%s expectedLiteral: %s gotLiteral: %s", i, tt.expectedType, tok.Type, tt.expectedLiteral, tok.Literal)
 		}
 
 		if tok.Literal != tt.expectedLiteral {

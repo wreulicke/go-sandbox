@@ -11,7 +11,7 @@ type Environment struct {
 
 func (e *Environment) Get(name string) (Object, bool) {
 	obj, ok := e.store[name]
-	if !ok {
+	if !ok && e.parent != nil {
 		return e.parent.Get(name)
 	}
 	return obj, ok

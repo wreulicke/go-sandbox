@@ -58,6 +58,16 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return fn
 		}
 		return evalCallExpression(fn, node.Arguments, env)
+	case *ast.IndexExpression:
+		left := Eval(node.Left, env)
+		if isError(left) {
+			return left
+		}
+		index := Eval(node.Index, env)
+		if isError(index) {
+			return index
+		}
+		return evalIndexExpression(left, index)
 	case *ast.ArrayLiteral:
 		elements, err := evalExpressions(node.Elements, env)
 		if err != nil {
@@ -270,6 +280,24 @@ func evalMinusPrefixOperatorExpression(right object.Object) object.Object {
 	}
 	value := right.(*object.Integer).Value
 	return &object.Integer{Value: -value}
+}
+
+func evalIndexExpression(left object.Object, index object.Object) object.Object {
+	switch {
+	case left.Type() == object.ARRAY && index.Type() == object.INTEGER:
+		return evalArrayIndexExpression(left, index)
+	default:
+		return newError("index operator not supported: %s", left.Type())
+	}
+}
+
+func evalArrayIndexExpression(left object.Object, index object.Object) object.Object {
+	leftValue := left.(*object.Array)
+	indexValue := index.(*object.Integer)
+	if indexValue.Value < 0 || indexValue.Value >= int64(len(leftValue.Elements)) {
+		return NULL
+	}
+	return leftValue.Elements[indexValue.Value]
 }
 
 func evalBangOperatorExpression(right object.Object) object.Object {

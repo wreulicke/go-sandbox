@@ -84,7 +84,7 @@ type Array struct {
 }
 
 func (a *Array) Type() ObjectType {
-	return STRING
+	return ARRAY
 }
 
 func (a *Array) Inspect() string {

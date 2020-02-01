@@ -218,6 +218,28 @@ func (ce *CallExpression) String() string {
 	return out.String()
 }
 
+type IndexExpression struct {
+	expression
+	Token token.Token
+	Left  Expression
+	Index Expression
+}
+
+func (ie *IndexExpression) TokenLiteral() string {
+	return ie.Token.Literal
+}
+
+func (ie *IndexExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteRune('(')
+	out.WriteString(ie.Left.String())
+	out.WriteRune('[')
+	out.WriteString(ie.Index.String())
+	out.WriteString("])")
+	return out.String()
+}
+
 type Identifier struct {
 	expression
 	Token token.Token

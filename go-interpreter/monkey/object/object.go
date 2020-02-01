@@ -12,6 +12,7 @@ var typeNames = []string{
 	"INTEGER",
 	"BOOLEAN",
 	"STRING",
+	"ARRAY",
 	"FUNCTION",
 	"NULL",
 	"RETURN",
@@ -25,6 +26,7 @@ const (
 	INTEGER ObjectType = iota
 	BOOLEAN
 	STRING
+	ARRAY
 	FUNCTION
 	NULL
 	RETURN
@@ -75,6 +77,26 @@ func (s *String) Type() ObjectType {
 
 func (s *String) Inspect() string {
 	return s.Value
+}
+
+type Array struct {
+	Elements []Object
+}
+
+func (a *Array) Type() ObjectType {
+	return STRING
+}
+
+func (a *Array) Inspect() string {
+	var out bytes.Buffer
+	elements := []string{}
+	for _, v := range a.Elements {
+		elements = append(elements, v.Inspect())
+	}
+	out.WriteRune('[')
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteRune(']')
+	return out.String()
 }
 
 type Null struct {

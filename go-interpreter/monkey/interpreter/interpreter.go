@@ -58,6 +58,14 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 			return fn
 		}
 		return evalCallExpression(fn, node.Arguments, env)
+	case *ast.ArrayLiteral:
+		elements, err := evalExpressions(node.Elements, env)
+		if err != nil {
+			return err
+		}
+		return &object.Array{
+			Elements: elements,
+		}
 	case *ast.Identifier:
 		return evalIdentifier(node, env)
 	case *ast.NumberLiteral:
@@ -81,14 +89,22 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	return newError("Unsupported ast.Node got=%T", node)
 }
 
-func evalCallExpression(fn object.Object, arguments []ast.Expression, env *object.Environment) object.Object {
-	var args []object.Object
-	for _, e := range arguments {
+func evalExpressions(expressions []ast.Expression, env *object.Environment) ([]object.Object, object.Object) {
+	var result []object.Object
+	for _, e := range expressions {
 		evaluated := Eval(e, env)
 		if isError(evaluated) {
-			return evaluated
+			return nil, evaluated
 		}
-		args = append(args, evaluated)
+		result = append(result, evaluated)
+	}
+	return result, nil
+}
+
+func evalCallExpression(fn object.Object, arguments []ast.Expression, env *object.Environment) object.Object {
+	args, err := evalExpressions(arguments, env)
+	if err != nil {
+		return err
 	}
 	switch fn := fn.(type) {
 	case *object.Function:

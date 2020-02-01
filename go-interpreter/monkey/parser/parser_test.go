@@ -9,6 +9,54 @@ import (
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/token"
 )
 
+func TestArrayLiteral(t *testing.T) {
+	input := "[1, 2 * 2, 3 + 3]"
+	l := lexer.New(input)
+	p := New(l)
+	program := p.Parse()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program does not contain %d statements. got=%d", 1, len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+	literal, ok := stmt.Expression.(*ast.ArrayLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.ArrayLiteral. got=%T", stmt.Expression)
+	}
+
+	testNumberLiteral(t, literal.Elements[0], "1")
+	testInfixExpression(t, literal.Elements[1], &ast.NumberLiteral{
+		Token: token.Token{
+			Type:    token.NUMBER,
+			Literal: "2",
+		},
+		Value: "2",
+	}, "*", &ast.NumberLiteral{
+		Token: token.Token{
+			Type:    token.NUMBER,
+			Literal: "2",
+		},
+		Value: "2",
+	})
+	testInfixExpression(t, literal.Elements[2], &ast.NumberLiteral{
+		Token: token.Token{
+			Type:    token.NUMBER,
+			Literal: "3",
+		},
+		Value: "3",
+	}, "+", &ast.NumberLiteral{
+		Token: token.Token{
+			Type:    token.NUMBER,
+			Literal: "3",
+		},
+		Value: "3",
+	})
+}
+
 func TestStringLiteral(t *testing.T) {
 	input := `"hello world"`
 	l := lexer.New(input)

@@ -9,6 +9,23 @@ import (
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/parser"
 )
 
+func TestFibbo(t *testing.T) {
+	input := `
+	let fibb = fn(x) { 
+		if(x == 0) { 
+			x 
+		} 
+		else {
+			if (x == 1) { x }
+			else { fibb(x - 1) + fibb(x - 2) }
+		}
+	};
+	fibb(2)
+	`
+	evaluated := testEval(input)
+	testIntegerObject(t, evaluated, 1)
+}
+
 func TestStringEqaulityExpression(t *testing.T) {
 	tests := []struct {
 		input    string

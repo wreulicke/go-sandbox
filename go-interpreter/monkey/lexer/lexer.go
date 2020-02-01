@@ -155,6 +155,50 @@ func (l *Lexer) readNumber(next rune) {
 	}
 }
 
+func (l *Lexer) readString(start rune) {
+	for {
+		next := l.Peek()
+		if next == start {
+			l.Skip()
+			return
+		}
+		switch {
+		case next == '\\':
+			l.Skip()
+			next := l.Peek()
+			if next == start {
+				l.Next()
+			} else if next == 'b' {
+				l.Skip()
+				l.buffer.WriteRune('\b')
+			} else if next == 'f' {
+				l.Skip()
+				l.buffer.WriteRune('\f')
+			} else if next == 'n' {
+				l.Skip()
+				l.buffer.WriteRune('\n')
+			} else if next == 'r' {
+				l.Skip()
+				l.buffer.WriteRune('\r')
+			} else if next == 't' {
+				l.Skip()
+				l.buffer.WriteRune('\t')
+			} else {
+				l.Error("unsupported escape character")
+				return
+			}
+		case unicode.IsControl(next):
+			l.Error("cannot contain control characters in strings")
+			return
+		case next == eof:
+			l.Error("unclosed string")
+			return
+		default:
+			l.Next()
+		}
+	}
+}
+
 func (l *Lexer) skipWhitespace() {
 	ruNe := l.Peek()
 	for unicode.IsSpace(ruNe) {
@@ -166,7 +210,18 @@ func (l *Lexer) skipWhitespace() {
 
 func (l *Lexer) NextToken() token.Token {
 	l.skipWhitespace()
-	next := l.Next()
+	next := l.Peek()
+	switch next {
+	case '"':
+		l.Skip()
+		l.readString(next)
+		return l.newToken(token.STRING)
+	case '\'':
+		l.Skip()
+		l.readString(next)
+		return l.newToken(token.STRING)
+	}
+	next = l.Next()
 	switch next {
 	case '=':
 		if l.Peek() == '=' {

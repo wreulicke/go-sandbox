@@ -13,6 +13,7 @@ const (
 
 	IDENT
 	NUMBER
+	STRING
 
 	ASSIGN
 	PLUS

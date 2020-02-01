@@ -9,6 +9,24 @@ import (
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/parser"
 )
 
+func TestStringEqaulityExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{`"Hello" == "Hello"`, true},
+		{`"Hello" == "World"`, false},
+		{`"Hello" + "World" == "World"`, false},
+		{`"Hello" + "World" == "HelloWorld"`, true},
+		{`"Hello" + " " + "World" == "World"`, false},
+		{`"Hello" + " " + "World" == "Hello World"`, true},
+	}
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testBooleanObject(t, evaluated, tt.expected)
+	}
+}
+
 func TestStringConcatenation(t *testing.T) {
 	input := `"Hello"+ " " + "World"`
 	evaluated := testEval(input)

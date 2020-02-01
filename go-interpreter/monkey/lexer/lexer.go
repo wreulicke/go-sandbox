@@ -99,7 +99,7 @@ func (l *Lexer) readIdentifier() {
 }
 
 func (l *Lexer) readNumber(next rune) {
-	if next == '0' {
+	if next == '0' && isDigit(l.Peek()) {
 		l.Error("unexpected digit '0'")
 		return
 	} else if isDigit(next) {

@@ -11,6 +11,7 @@ import "strings"
 var typeNames = []string{
 	"INTEGER",
 	"BOOLEAN",
+	"STRING",
 	"FUNCTION",
 	"NULL",
 	"RETURN",
@@ -18,6 +19,16 @@ var typeNames = []string{
 }
 
 type ObjectType int
+
+const (
+	INTEGER ObjectType = iota
+	BOOLEAN
+	STRING
+	FUNCTION
+	NULL
+	RETURN
+	ERROR
+)
 
 func (o ObjectType) String() string {
 	return typeNames[o]
@@ -27,15 +38,6 @@ type Object interface {
 	Type() ObjectType
 	Inspect() string
 }
-
-const (
-	INTEGER ObjectType = iota
-	BOOLEAN
-	FUNCTION
-	NULL
-	RETURN
-	ERROR
-)
 
 type Integer struct {
 	Value int64
@@ -59,6 +61,18 @@ func (b *Boolean) Type() ObjectType {
 
 func (b *Boolean) Inspect() string {
 	return fmt.Sprintf("%t", b.Value)
+}
+
+type String struct {
+	Value string
+}
+
+func (s *String) Type() ObjectType {
+	return STRING
+}
+
+func (s *String) Inspect() string {
+	return s.Value
 }
 
 type Null struct {

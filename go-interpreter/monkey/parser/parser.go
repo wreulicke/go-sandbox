@@ -93,11 +93,11 @@ func (p *Parser) Errors() []error {
 }
 
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
-	p.errors = append(p.errors, fmt.Errorf("no prefix parse function for %d found", t))
+	p.errors = append(p.errors, fmt.Errorf("no prefix parse function for %s found", t))
 }
 
 func (p *Parser) peekError(t token.TokenType) {
-	p.errors = append(p.errors, fmt.Errorf("expected next token to be %v, got %v instead", t, p.peekToken.Type))
+	p.errors = append(p.errors, fmt.Errorf("expected next token to be %s, got %s instead", t, p.peekToken.Type))
 }
 
 func (p *Parser) nextToken() {

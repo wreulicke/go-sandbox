@@ -1,10 +1,53 @@
 package token
 
-type TokenType int
-
 type Token struct {
 	Type    TokenType
 	Literal string
+}
+
+var typeNames = []string{
+	"ILLEGAL",
+	"EOF",
+
+	"IDENT",
+	"NUMBER",
+	"STRING",
+
+	"ASSIGN",
+	"PLUS",
+	"MINUS",
+	"BANG",
+	"ASTERISK",
+	"SLASH",
+
+	"EQ",
+	"NOT_EQ",
+
+	"LT",
+	"GT",
+
+	"COMMA",
+	"SEMICOLON",
+
+	"LPAREN",
+	"RPAREN",
+
+	"LBRACE",
+	"RBRACE",
+
+	"FUNCTION",
+	"LET",
+	"RETURN",
+	"TRUE",
+	"FALSE",
+	"IF",
+	"ELSE",
+}
+
+type TokenType int
+
+func (t TokenType) String() string {
+	return typeNames[t]
 }
 
 const (

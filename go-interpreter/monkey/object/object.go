@@ -16,6 +16,7 @@ var typeNames = []string{
 	"NULL",
 	"RETURN",
 	"ERROR",
+	"BUILTIN",
 }
 
 type ObjectType int
@@ -28,6 +29,7 @@ const (
 	NULL
 	RETURN
 	ERROR
+	BUILTIN
 )
 
 func (o ObjectType) String() string {
@@ -133,4 +135,18 @@ func (f *Function) Inspect() string {
 	out.WriteString(f.Body.String())
 	out.WriteString("\n}")
 	return out.String()
+}
+
+type BuiltinFunction func(args ...Object) Object
+
+type Builtin struct {
+	Fn BuiltinFunction
+}
+
+func (f *Builtin) Type() ObjectType {
+	return BUILTIN
+}
+
+func (f *Builtin) Inspect() string {
+	return "builtin function"
 }

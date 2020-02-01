@@ -59,10 +59,7 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 		return evalCallExpression(fn, node.Arguments, env)
 	case *ast.Identifier:
-		if v, ok := env.Get(node.Value); ok {
-			return v
-		}
-		return newError("identifier is not found: %s", node.Value)
+		return evalIdentifier(node, env)
 	case *ast.NumberLiteral:
 		i, err := strconv.ParseInt(node.Value, 10, 64)
 		if err != nil {
@@ -84,22 +81,24 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 	return newError("Unsupported ast.Node got=%T", node)
 }
 
-func evalCallExpression(fn object.Object, parametres []ast.Expression, env *object.Environment) object.Object {
-	function, ok := fn.(*object.Function)
-	if !ok {
-		return newError("not a function: %s", fn.Type())
-	}
-
+func evalCallExpression(fn object.Object, arguments []ast.Expression, env *object.Environment) object.Object {
 	var args []object.Object
-	for _, e := range parametres {
+	for _, e := range arguments {
 		evaluated := Eval(e, env)
 		if isError(evaluated) {
 			return evaluated
 		}
 		args = append(args, evaluated)
 	}
-	functionEnv := extendFunctionEnv(function, args)
-	return unwrapReturnValue(Eval(function.Body, functionEnv))
+	switch fn := fn.(type) {
+	case *object.Function:
+		functionEnv := extendFunctionEnv(fn, args)
+		return unwrapReturnValue(Eval(fn.Body, functionEnv))
+	case *object.Builtin:
+		return fn.Fn(args...)
+	}
+	return newError("not a function: %s", fn.Type())
+
 }
 
 func extendFunctionEnv(function *object.Function, args []object.Object) *object.Environment {
@@ -268,6 +267,16 @@ func evalBangOperatorExpression(right object.Object) object.Object {
 	default:
 		return FALSE
 	}
+}
+
+func evalIdentifier(node *ast.Identifier, env *object.Environment) object.Object {
+	if v, ok := env.Get(node.Value); ok {
+		return v
+	}
+	if builtin, ok := builtins[node.Value]; ok {
+		return builtin
+	}
+	return newError("identifier is not found: %s", node.Value)
 }
 
 func nativeBoolToBooleanObject(b bool) object.Object {

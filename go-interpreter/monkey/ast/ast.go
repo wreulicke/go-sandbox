@@ -260,6 +260,20 @@ func (b *BooleanLiteral) String() string {
 	return b.Token.Literal
 }
 
+type StringLiteral struct {
+	expression
+	Token token.Token
+	Value string
+}
+
+func (b *StringLiteral) TokenLiteral() string {
+	return b.Token.Literal
+}
+
+func (b *StringLiteral) String() string {
+	return b.Token.Literal
+}
+
 type FunctionLiteral struct {
 	expression
 	Token      token.Token

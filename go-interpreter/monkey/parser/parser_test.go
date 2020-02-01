@@ -9,6 +9,29 @@ import (
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/token"
 )
 
+func TestStringLiteral(t *testing.T) {
+	input := `"hello world"`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.Parse()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program does not contain %d statements. got=%d", 1, len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+	literal, ok := stmt.Expression.(*ast.StringLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.StringLiteral. got=%T", stmt.Expression)
+	}
+	if literal.Value != "hello world" {
+		t.Errorf("literal.Value not %q. got=%q", "hello world", literal.Value)
+	}
+}
+
 func TestCallExpression(t *testing.T) {
 	input := "add(1, 2 * 3, 4 + 5);"
 	l := lexer.New(input)

@@ -9,6 +9,30 @@ import (
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/parser"
 )
 
+func TestMap(t *testing.T) {
+	input := `
+	let map = fn(arr, f) {
+		let iter = fn(arr, accumulated) {
+			if(len(arr) == 0) {
+				accumulated
+			} else {
+				iter(rest(arr), push(accumulated, f(first(arr))))
+			}
+		}
+		iter(arr, [])
+	}
+	let a = [1, 2, 3, 4]
+	let double = fn(x) { x * 2}
+	map(a, double)
+	`
+	evaluated := testEval(input)
+	arr := evaluated.(*object.Array)
+	testIntegerObject(t, arr.Elements[0], 2)
+	testIntegerObject(t, arr.Elements[1], 4)
+	testIntegerObject(t, arr.Elements[2], 6)
+	testIntegerObject(t, arr.Elements[3], 8)
+}
+
 func TestArrayIndexExpressions(t *testing.T) {
 	tests := []struct {
 		input    string

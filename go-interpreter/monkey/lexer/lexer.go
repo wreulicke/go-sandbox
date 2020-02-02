@@ -247,6 +247,8 @@ func (l *Lexer) NextToken() token.Token {
 		return l.newToken(token.LT)
 	case '>':
 		return l.newToken(token.GT)
+	case ':':
+		return l.newToken(token.COLON)
 	case ';':
 		return l.newToken(token.SEMICOLON)
 	case '(':

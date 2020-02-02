@@ -28,6 +28,7 @@ var typeNames = []string{
 
 	"COMMA",
 	"SEMICOLON",
+	"COLON",
 
 	"LBRACKET",
 	"RBRACKET",
@@ -76,6 +77,7 @@ const (
 
 	COMMA
 	SEMICOLON
+	COLON
 
 	LBRACKET
 	RBRACKET

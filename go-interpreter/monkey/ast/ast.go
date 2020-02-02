@@ -321,6 +321,31 @@ func (al *ArrayLiteral) String() string {
 	return out.String()
 }
 
+type HashLiteral struct {
+	expression
+	Token token.Token
+	Pairs map[Expression]Expression
+}
+
+func (hl *HashLiteral) TokenLiteral() string {
+	return hl.Token.Literal
+}
+
+func (hl *HashLiteral) String() string {
+	var out bytes.Buffer
+
+	pairs := []string{}
+	for k, v := range hl.Pairs {
+		pairs = append(pairs, k.String()+": "+v.String())
+	}
+
+	out.WriteRune('{')
+	out.WriteString(strings.Join(pairs, ", "))
+	out.WriteRune('}')
+
+	return out.String()
+}
+
 type FunctionLiteral struct {
 	expression
 	Token      token.Token

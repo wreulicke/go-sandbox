@@ -9,6 +9,146 @@ import (
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/token"
 )
 
+func TestParsingEmptyHashLiteral(t *testing.T) {
+	input := `{}`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.Parse()
+	checkParserErrors(t, p)
+	if len(program.Statements) != 1 {
+		t.Fatalf("program does not contain %d statements. got=%d", 1, len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+	hash, ok := stmt.Expression.(*ast.HashLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.HashLiteral. got=%T", stmt.Expression)
+	}
+	if len(hash.Pairs) != 0 {
+		t.Errorf("hash.Pairs has wrong length. got=%d", len(hash.Pairs))
+	}
+}
+
+func TestParsingHashLiteral(t *testing.T) {
+	input := `{"one": 1, "two": 2, "three": 3}`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.Parse()
+	checkParserErrors(t, p)
+	if len(program.Statements) != 1 {
+		t.Fatalf("program does not contain %d statements. got=%d", 1, len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+	hash, ok := stmt.Expression.(*ast.HashLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.HashLiteral. got=%T", stmt.Expression)
+	}
+	if len(hash.Pairs) != 3 {
+		t.Errorf("hash.Pairs has wrong length. got=%d", len(hash.Pairs))
+	}
+	expected := map[string]int64{
+		"one":   1,
+		"two":   2,
+		"three": 3,
+	}
+
+	for k, v := range hash.Pairs {
+		literal, ok := k.(*ast.StringLiteral)
+		if !ok {
+			t.Errorf("key is not ast.StringLiteral. got=%T", k)
+		}
+		expectedValue := expected[literal.String()]
+		testNumberLiteral(t, v, fmt.Sprintf("%v", expectedValue))
+	}
+}
+
+func TestParsingHashLiteralWithExpression(t *testing.T) {
+	input := `{"one": 0 + 1, "two": 10 - 8, "three": 15 / 5}`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.Parse()
+	checkParserErrors(t, p)
+	if len(program.Statements) != 1 {
+		t.Fatalf("program does not contain %d statements. got=%d", 1, len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+	}
+	hash, ok := stmt.Expression.(*ast.HashLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.HashLiteral. got=%T", stmt.Expression)
+	}
+	if len(hash.Pairs) != 3 {
+		t.Errorf("hash.Pairs has wrong length. got=%d", len(hash.Pairs))
+	}
+	expected := map[string]func(e ast.Expression){
+		"one": func(e ast.Expression) {
+			testInfixExpression(t, e, &ast.NumberLiteral{
+				Token: token.Token{
+					Type:    token.NUMBER,
+					Literal: "0",
+				},
+				Value: "0",
+			}, "+", &ast.NumberLiteral{
+				Token: token.Token{
+					Type:    token.NUMBER,
+					Literal: "1",
+				},
+				Value: "1",
+			})
+		},
+		"two": func(e ast.Expression) {
+			testInfixExpression(t, e, &ast.NumberLiteral{
+				Token: token.Token{
+					Type:    token.NUMBER,
+					Literal: "10",
+				},
+				Value: "10",
+			}, "-", &ast.NumberLiteral{
+				Token: token.Token{
+					Type:    token.NUMBER,
+					Literal: "8",
+				},
+				Value: "8",
+			})
+		},
+		"three": func(e ast.Expression) {
+			testInfixExpression(t, e, &ast.NumberLiteral{
+				Token: token.Token{
+					Type:    token.NUMBER,
+					Literal: "15",
+				},
+				Value: "15",
+			}, "/", &ast.NumberLiteral{
+				Token: token.Token{
+					Type:    token.NUMBER,
+					Literal: "5",
+				},
+				Value: "5",
+			})
+		},
+	}
+
+	for k, v := range hash.Pairs {
+		literal, ok := k.(*ast.StringLiteral)
+		if !ok {
+			t.Errorf("key is not ast.StringLiteral. got=%T", k)
+		}
+		assertion, ok := expected[literal.String()]
+		if !ok {
+			t.Errorf("No test function for key %q found", literal.String())
+			continue
+		}
+		assertion(v)
+	}
+}
+
 func TestParsingIndexExpressions(t *testing.T) {
 	input := "myArray[1 + 1]"
 	l := lexer.New(input)

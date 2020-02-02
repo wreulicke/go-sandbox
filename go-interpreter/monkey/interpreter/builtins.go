@@ -2,6 +2,8 @@ package interpreter
 
 import "github.com/wreulicke/go-sandbox/go-interpreter/monkey/object"
 
+import "fmt"
+
 var builtins = map[string]*object.Builtin{
 	"len": &object.Builtin{
 		Fn: func(args ...object.Object) object.Object {
@@ -82,6 +84,14 @@ var builtins = map[string]*object.Builtin{
 			default:
 				return newError("argument to `rest` not supported, got %s", arg.Type())
 			}
+		},
+	},
+	"puts": &object.Builtin{
+		Fn: func(args ...object.Object) object.Object {
+			for _, arg := range args {
+				fmt.Println(arg.Inspect())
+			}
+			return NULL
 		},
 	},
 }

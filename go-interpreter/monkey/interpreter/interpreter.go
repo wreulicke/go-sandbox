@@ -291,7 +291,7 @@ func evalIndexExpression(left object.Object, index object.Object) object.Object 
 	case left.Type() == object.HASH:
 		hashKey, ok := index.(object.Hashable)
 		if !ok {
-			return newError("index is not hashable")
+			return newError("unusable as hash key: %s", index.Type())
 		}
 		return evalHashIndexExpression(left, hashKey.HashKey())
 	default:

@@ -288,6 +288,12 @@ func evalIndexExpression(left object.Object, index object.Object) object.Object 
 	switch {
 	case left.Type() == object.ARRAY && index.Type() == object.INTEGER:
 		return evalArrayIndexExpression(left, index)
+	case left.Type() == object.HASH:
+		hashKey, ok := index.(object.Hashable)
+		if !ok {
+			return newError("index is not hashable")
+		}
+		return evalHashIndexExpression(left, hashKey.HashKey())
 	default:
 		return newError("index operator not supported: %s", left.Type())
 	}
@@ -300,6 +306,15 @@ func evalArrayIndexExpression(left object.Object, index object.Object) object.Ob
 		return NULL
 	}
 	return leftValue.Elements[indexValue.Value]
+}
+
+func evalHashIndexExpression(left object.Object, hashKey object.HashKey) object.Object {
+	leftValue := left.(*object.Hash)
+	r, ok := leftValue.Pairs[hashKey]
+	if !ok {
+		return NULL
+	}
+	return r.Value
 }
 
 func evalBangOperatorExpression(right object.Object) object.Object {

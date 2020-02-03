@@ -33,7 +33,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		if isError(val) {
 			return val
 		}
-		return env.Set(node.Name.Value, val)
+		bindPattern(env, node.Pattern, val)
+		return val
 	case *ast.PrefixExpression:
 		right := Eval(node.Right, env)
 		if isError(right) {
@@ -99,6 +100,26 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return f
 	}
 	return newError("Unsupported ast.Node got=%T", node)
+}
+
+func bindPattern(env *object.Environment, pattern ast.Pattern, val object.Object) *object.Error {
+	switch node := pattern.(type) {
+	case *ast.Identifier:
+		env.Set(node.Value, val)
+	case *ast.ArrayPattern:
+		array, ok := val.(*object.Array)
+		if !ok {
+			return newError("initializer is not Array. cannot destruct. got=%T", val)
+		}
+		for idx, v := range node.Pattern {
+			if idx < len(array.Elements) {
+				env.Set(v.Value, array.Elements[idx])
+			} else {
+				env.Set(v.Value, NULL)
+			}
+		}
+	}
+	return nil
 }
 
 func evalExpressions(expressions []ast.Expression, env *object.Environment) ([]object.Object, object.Object) {

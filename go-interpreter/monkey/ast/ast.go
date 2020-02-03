@@ -34,11 +34,15 @@ type expression struct{}
 
 func (e *expression) expressionNode() {}
 
+type pattern struct{}
+
+func (p *pattern) patternNode() {}
+
 type LetStatement struct {
 	statement
-	Token token.Token
-	Name  *Identifier
-	Value Expression
+	Token   token.Token
+	Pattern Pattern
+	Value   Expression
 }
 
 func (ls *LetStatement) TokenLiteral() string {
@@ -49,7 +53,7 @@ func (ls *LetStatement) String() string {
 	var out bytes.Buffer
 	out.WriteString(ls.TokenLiteral())
 	out.WriteRune(' ')
-	out.WriteString(ls.Name.String())
+	out.WriteString(ls.Pattern.String())
 
 	out.WriteString(" = ")
 	if ls.Value != nil {
@@ -242,6 +246,7 @@ func (ie *IndexExpression) String() string {
 
 type Identifier struct {
 	expression
+	pattern
 	Token token.Token
 	Value string
 }
@@ -385,4 +390,34 @@ type Statement interface {
 type Expression interface {
 	Node
 	expressionNode()
+}
+
+type Pattern interface {
+	Node
+	patternNode()
+}
+
+type ArrayPattern struct {
+	pattern
+	Token   token.Token
+	Pattern []*Identifier
+}
+
+func (ap *ArrayPattern) TokenLiteral() string {
+	return ap.Token.Literal
+}
+
+func (ap *ArrayPattern) String() string {
+	var out bytes.Buffer
+
+	patterns := []string{}
+	for _, a := range ap.Pattern {
+		patterns = append(patterns, a.String())
+	}
+
+	out.WriteRune('[')
+	out.WriteString(strings.Join(patterns, ", "))
+	out.WriteRune(']')
+
+	return out.String()
 }

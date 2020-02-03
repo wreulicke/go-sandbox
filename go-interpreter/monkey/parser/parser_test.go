@@ -842,6 +842,38 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
+func TestLetStatementWithArrayPattern(t *testing.T) {
+	input := `let [x, y] = [1, 2];`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.Parse()
+	checkParserErrors(t, p)
+	if program == nil {
+		t.Fatalf("Parse returned nil")
+	}
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program does not have 1 statement. got=%d", len(program.Statements))
+	}
+
+	s := program.Statements[0]
+	if s.TokenLiteral() != "let" {
+		t.Fatalf("s.TokenLiteral is not 'let'. got=%q", s.TokenLiteral())
+	}
+	letStmt, ok := s.(*ast.LetStatement)
+	if !ok {
+		t.Fatalf("s is not *ast.LetStatement")
+	}
+
+	patterns, ok := letStmt.Pattern.(*ast.ArrayPattern)
+	if !ok {
+		t.Errorf("letStmt.Pattern is not ArrayPattern. got=%T", letStmt.Pattern)
+	}
+
+	testIdentifier(t, patterns.Pattern[0], "x")
+	testIdentifier(t, patterns.Pattern[1], "y")
+}
+
 func TestLetStatement(t *testing.T) {
 	input := `
 let x = 5;
@@ -950,13 +982,13 @@ func testLetStatement(t *testing.T, s ast.Statement, name string) bool {
 		t.Errorf("s is not *ast.LetStatement")
 	}
 
-	if letStmt.Name.Value != name {
-		t.Errorf("letStmt.Name.Value is not '%s'. got=%s", name, letStmt.Name.Value)
+	if letStmt.Pattern.(*ast.Identifier).Value != name {
+		t.Errorf("letStmt.Name.Value is not '%s'. got=%s", name, letStmt.Pattern.(*ast.Identifier).Value)
 		return false
 	}
 
-	if letStmt.Name.TokenLiteral() != name {
-		t.Errorf("letStmt.Name.TokenLiteral() is not '%s'. got=%s", name, letStmt.Name.TokenLiteral())
+	if letStmt.Pattern.TokenLiteral() != name {
+		t.Errorf("letStmt.Name.TokenLiteral() is not '%s'. got=%s", name, letStmt.Pattern.TokenLiteral())
 		return false
 	}
 

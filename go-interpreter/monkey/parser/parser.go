@@ -158,11 +158,29 @@ func (p *Parser) parseReturnStatement() ast.Statement {
 func (p *Parser) parseLetStatement() ast.Statement {
 	stmt := &ast.LetStatement{Token: p.curToken}
 
-	if !p.expectPeek(token.IDENT) {
+	// TODO extract parsePattern
+	if p.peekTokenIs(token.LBRACKET) {
+		p.nextToken()
+		pattern := &ast.ArrayPattern{}
+		for !p.peekTokenIs(token.RBRACKET) {
+			if !p.peekTokenIs(token.IDENT) {
+				return nil
+			}
+			p.nextToken()
+			pattern.Pattern = append(pattern.Pattern, &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal})
+			if p.peekTokenIs(token.COMMA) {
+				p.nextToken()
+			}
+		}
+		p.nextToken()
+		stmt.Pattern = pattern
+	} else if p.peekTokenIs(token.IDENT) {
+		p.nextToken()
+		stmt.Pattern = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	} else {
 		return nil
 	}
 
-	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 	if !p.expectPeek(token.ASSIGN) {
 		return nil
 	}

@@ -19,6 +19,7 @@ var typeNames = []string{
 	"BANG",
 	"ASTERISK",
 	"SLASH",
+	"PIPELINE",
 
 	"EQ",
 	"NOT_EQ",
@@ -68,6 +69,7 @@ const (
 	BANG
 	ASTERISK
 	SLASH
+	PIPELINE
 
 	EQ
 	NOT_EQ

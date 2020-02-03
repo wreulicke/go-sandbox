@@ -118,6 +118,10 @@ func evalCallExpression(fn object.Object, arguments []ast.Expression, env *objec
 	if err != nil {
 		return err
 	}
+	return callFunction(fn, args)
+}
+
+func callFunction(fn object.Object, args []object.Object) object.Object {
 	switch fn := fn.(type) {
 	case *object.Function:
 		functionEnv := extendFunctionEnv(fn, args)
@@ -126,7 +130,6 @@ func evalCallExpression(fn object.Object, arguments []ast.Expression, env *objec
 		return fn.Fn(args...)
 	}
 	return newError("not a function: %s", fn.Type())
-
 }
 
 func extendFunctionEnv(function *object.Function, args []object.Object) *object.Environment {
@@ -214,6 +217,8 @@ func evalInfixExpression(operator string, left object.Object, right object.Objec
 		return evalIntegerInfixExpression(operator, left, right)
 	case left.Type() == object.STRING && right.Type() == object.STRING:
 		return evalStringInfixExpression(operator, left, right)
+	case right.Type() == object.FUNCTION || right.Type() == object.BUILTIN:
+		return evalPipelineOperator(left, right)
 	case operator == "==":
 		return nativeBoolToBooleanObject(left == right)
 	case operator == "!=":
@@ -223,6 +228,10 @@ func evalInfixExpression(operator string, left object.Object, right object.Objec
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}
+}
+
+func evalPipelineOperator(left object.Object, right object.Object) object.Object {
+	return callFunction(right, []object.Object{left})
 }
 
 func evalStringInfixExpression(operator string, left object.Object, right object.Object) object.Object {

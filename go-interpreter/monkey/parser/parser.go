@@ -13,6 +13,7 @@ type Precedence int
 const (
 	_ Precedence = iota
 	LOWEST
+	PIPELINE
 	EQUALS
 	LESSGREATER
 	SUM
@@ -33,6 +34,7 @@ var precedences = map[token.TokenType]Precedence{
 	token.ASTERISK: PRODUCT,
 	token.LPAREN:   CALL,
 	token.LBRACKET: INDEX,
+	token.PIPELINE: PIPELINE,
 }
 
 type (
@@ -80,6 +82,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.ASTERISK, p.parseInfixExpression)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
 	p.registerInfix(token.LBRACKET, p.parseIndexExpression)
+	p.registerInfix(token.PIPELINE, p.parseInfixExpression)
+
 	p.nextToken()
 	p.nextToken()
 	return p

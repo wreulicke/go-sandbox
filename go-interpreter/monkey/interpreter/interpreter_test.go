@@ -9,6 +9,32 @@ import (
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/parser"
 )
 
+func TestPipelineOperatorExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{
+		{`1 | fn(x) { x }`, 1},
+		{`[1, 2] | fn(x) { x[0] + x[1] }`, 3},
+		{`[1, 2] | fn(x) { x[0] + x[1] } | fn(x) {x * 2}`, 6},
+
+		// builtins
+		{`[1, 2] | len`, 2},
+		{`[1, 2] | first`, 1},
+
+		{`
+		let _first = fn(x) { x[0] };
+		[1, 2] | _first
+		`, 1},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testIntegerObject(t, evaluated, tt.expected)
+	}
+
+}
+
 func TestHashIndexExpressions(t *testing.T) {
 	tests := []struct {
 		input    string

@@ -9,6 +9,45 @@ import (
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/token"
 )
 
+func TestParsingPipelineOperator(t *testing.T) {
+	infixTests := []struct {
+		input      string
+		leftString string
+	}{
+		{"5 | fn (x) { x }", "5"},
+		{"(5 + 10) | fn (x) { x }", "(5 + 10)"},
+		{"5 + 10 | fn (x) { x }", "(5 + 10)"},
+		{"x(10 + 2) - 3 | fn (x) { x }", "(x((10 + 2)) - 3)"},
+		{"x(10 + 2) - (3 + 2) | fn (x) { x }", "(x((10 + 2)) - (3 + 2))"},
+		{"x(10 + 2) - (3 | fn (x) { x } ) | fn (x) { x }", "(x((10 + 2)) - (3 | fn(x) x))"},
+	}
+
+	for _, tt := range infixTests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.Parse()
+		checkParserErrors(t, p)
+		if len(program.Statements) != 1 {
+			t.Fatalf("program does not contain %d statements. got=%d", 1, len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+		}
+		exp, ok := stmt.Expression.(*ast.InfixExpression)
+		if !ok {
+			t.Fatalf("stmt.Expression is not ast.InfixExpression. got=%T", stmt.Expression)
+		}
+		if exp.Operator != "|" {
+			t.Fatalf("exp.Operator is not '%s'. got=%s", "|", exp.Operator)
+		}
+		if exp.Left.String() != tt.leftString {
+			t.Errorf("exp.String() is not %q. got=%q", tt.leftString, exp.Left.String())
+		}
+	}
+}
+
 func TestParsingEmptyHashLiteral(t *testing.T) {
 	input := `{}`
 	l := lexer.New(input)
@@ -671,6 +710,7 @@ func TestParsingPrefixExpressions(t *testing.T) {
 		}
 	}
 }
+
 func testNumberLiteral(t *testing.T, il ast.Expression, value string) bool {
 	l, ok := il.(*ast.NumberLiteral)
 	if !ok {

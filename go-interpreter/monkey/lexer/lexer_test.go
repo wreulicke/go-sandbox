@@ -26,6 +26,7 @@ if (5 < 10) {
 "test test"
 [1, 2];
 {"foo": "bar"}
+"a" | fn(x) { x + "2" }
 `
 	tests := []struct {
 		expectedType    token.TokenType
@@ -129,12 +130,25 @@ if (5 < 10) {
 		{token.NUMBER, "2"},
 		{token.RBRACKET, "]"},
 		{token.SEMICOLON, ";"},
-		//
 
+		//
 		{token.LBRACE, "{"},
 		{token.STRING, "foo"},
 		{token.COLON, ":"},
 		{token.STRING, "bar"},
+		{token.RBRACE, "}"},
+
+		//
+		{token.STRING, "a"},
+		{token.PIPELINE, "|"},
+		{token.FUNCTION, "fn"},
+		{token.LPAREN, "("},
+		{token.IDENT, "x"},
+		{token.RPAREN, ")"},
+		{token.LBRACE, "{"},
+		{token.IDENT, "x"},
+		{token.PLUS, "+"},
+		{token.STRING, "2"},
 		{token.RBRACE, "}"},
 
 		//

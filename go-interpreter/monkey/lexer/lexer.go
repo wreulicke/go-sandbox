@@ -265,6 +265,8 @@ func (l *Lexer) NextToken() token.Token {
 		return l.newToken(token.LBRACKET)
 	case ']':
 		return l.newToken(token.RBRACKET)
+	case '|':
+		return l.newToken(token.PIPELINE)
 	case eof:
 		return l.newToken(token.EOF)
 	default:

@@ -354,7 +354,7 @@ func (hl *HashLiteral) String() string {
 type FunctionLiteral struct {
 	expression
 	Token      token.Token
-	Parameters []*Identifier
+	Parameters []Pattern
 	Body       *BlockStatement
 }
 

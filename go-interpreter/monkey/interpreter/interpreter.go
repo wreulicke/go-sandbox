@@ -157,7 +157,7 @@ func extendFunctionEnv(function *object.Function, args []object.Object) *object.
 	env := function.Env.NewEnclosedEnvironment()
 
 	for paramIdx, param := range function.Parameters {
-		env.Set(param.Value, args[paramIdx])
+		bindPattern(env, param, args[paramIdx])
 	}
 	return env
 }

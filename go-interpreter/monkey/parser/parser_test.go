@@ -9,6 +9,88 @@ import (
 	"github.com/wreulicke/go-sandbox/go-interpreter/monkey/token"
 )
 
+func TestParsingFunctionLiteralWithArrayPattern(t *testing.T) {
+	infixTests := []struct {
+		input           string
+		expectedPattern []ast.Pattern
+	}{
+		{"fn ([x]) { x }", []ast.Pattern{
+			&ast.ArrayPattern{
+				Token: token.Token{
+					Type:    token.LBRACKET,
+					Literal: "[",
+				},
+				Pattern: []*ast.Identifier{
+					&ast.Identifier{
+						Token: token.Token{
+							Type:    token.IDENT,
+							Literal: "x",
+						},
+						Value: "x",
+					},
+				},
+			}}},
+		{"fn ([x, y]) { x }",
+			[]ast.Pattern{
+				&ast.ArrayPattern{
+					Token: token.Token{
+						Type:    token.LBRACKET,
+						Literal: "[",
+					},
+					Pattern: []*ast.Identifier{
+						&ast.Identifier{
+							Token: token.Token{
+								Type:    token.IDENT,
+								Literal: "x",
+							},
+							Value: "x",
+						},
+						&ast.Identifier{
+							Token: token.Token{
+								Type:    token.IDENT,
+								Literal: "y",
+							},
+							Value: "y",
+						},
+					},
+				}}},
+	}
+
+	for i, tt := range infixTests {
+		tt := tt
+		t.Run(fmt.Sprintf("tests[%d]", i), func(t *testing.T) {
+			l := lexer.New(tt.input)
+			p := New(l)
+			program := p.Parse()
+			checkParserErrors(t, p)
+			if len(program.Statements) != 1 {
+				t.Fatalf("program does not contain %d statements. got=%d", 1, len(program.Statements))
+			}
+
+			stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+			if !ok {
+				t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T", program.Statements[0])
+			}
+			exp, ok := stmt.Expression.(*ast.FunctionLiteral)
+			if !ok {
+				t.Fatalf("stmt.Expression is not ast.FunctionLiteral. got=%T", stmt.Expression)
+			}
+			if len(exp.Parameters) != len(tt.expectedPattern) {
+				t.Fatalf("exp.Parameters has not expected length. got=%d, expected:%d", len(exp.Parameters), len(tt.expectedPattern))
+			}
+			for i, v := range tt.expectedPattern {
+				if exp.Parameters[i].TokenLiteral() != v.TokenLiteral() {
+					t.Fatalf("exp.Parameters[i].TokenLiteral is not expected. got=%s, want=%s", exp.Parameters[i].TokenLiteral(), v.TokenLiteral())
+				}
+				if exp.Parameters[i].String() != v.String() {
+					t.Fatalf("exp.Parameters[i].String is not expected. got=%s, want=%s", exp.Parameters[i].String(), v.String())
+				}
+			}
+		})
+	}
+
+}
+
 func TestParsingPipelineOperator(t *testing.T) {
 	infixTests := []struct {
 		input      string
@@ -381,14 +463,14 @@ func TestFunctionLiteralParsing(t *testing.T) {
 	if len(fn.Parameters) != 2 {
 		t.Fatalf("function literal parameters wrong. want 2, got =%d", len(fn.Parameters))
 	}
-	testExpression(t, fn.Parameters[0], &ast.Identifier{
+	testExpression(t, fn.Parameters[0].(*ast.Identifier), &ast.Identifier{
 		Token: token.Token{
 			Type:    token.IDENT,
 			Literal: "x",
 		},
 		Value: "x",
 	})
-	testExpression(t, fn.Parameters[1], &ast.Identifier{
+	testExpression(t, fn.Parameters[1].(*ast.Identifier), &ast.Identifier{
 		Token: token.Token{
 			Type:    token.IDENT,
 			Literal: "y",

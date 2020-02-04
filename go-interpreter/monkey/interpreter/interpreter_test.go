@@ -17,6 +17,8 @@ func TestPipelineOperatorExpressions(t *testing.T) {
 		{`1 | fn(x) { x }`, 1},
 		{`[1, 2] | fn(x) { x[0] + x[1] }`, 3},
 		{`[1, 2] | fn(x) { x[0] + x[1] } | fn(x) {x * 2}`, 6},
+		// Array Pattern
+		{`[1, 2] | fn([x, y]) { x + y }`, 3},
 
 		// builtins
 		{`[1, 2] | len`, 2},

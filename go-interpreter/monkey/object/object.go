@@ -163,7 +163,7 @@ func (e *Error) Inspect() string {
 }
 
 type Function struct {
-	Parameters []*ast.Identifier
+	Parameters []ast.Pattern
 	Body       *ast.BlockStatement
 	Env        *Environment
 }

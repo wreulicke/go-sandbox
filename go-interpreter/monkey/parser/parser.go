@@ -158,26 +158,8 @@ func (p *Parser) parseReturnStatement() ast.Statement {
 func (p *Parser) parseLetStatement() ast.Statement {
 	stmt := &ast.LetStatement{Token: p.curToken}
 
-	// TODO extract parsePattern
-	if p.peekTokenIs(token.LBRACKET) {
-		p.nextToken()
-		pattern := &ast.ArrayPattern{}
-		for !p.peekTokenIs(token.RBRACKET) {
-			if !p.peekTokenIs(token.IDENT) {
-				return nil
-			}
-			p.nextToken()
-			pattern.Pattern = append(pattern.Pattern, &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal})
-			if p.peekTokenIs(token.COMMA) {
-				p.nextToken()
-			}
-		}
-		p.nextToken()
-		stmt.Pattern = pattern
-	} else if p.peekTokenIs(token.IDENT) {
-		p.nextToken()
-		stmt.Pattern = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
-	} else {
+	stmt.Pattern = p.parsePattern()
+	if stmt.Pattern == nil {
 		return nil
 	}
 
@@ -371,30 +353,31 @@ func (p *Parser) parseHashLiteral() ast.Expression {
 	return hash
 }
 
-func (p *Parser) parseFunctionParameters() []*ast.Identifier {
-	identifiers := []*ast.Identifier{}
+func (p *Parser) parseFunctionParameters() []ast.Pattern {
+	patterns := []ast.Pattern{}
 
 	if p.peekTokenIs(token.RPAREN) {
 		p.nextToken()
-		return identifiers
+		return patterns
 	}
-	p.nextToken()
 
-	ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
-	identifiers = append(identifiers, ident)
+	pattern := p.parsePattern()
+	if pattern == nil {
+		return patterns
+	}
+	patterns = append(patterns, pattern)
 
 	for p.peekTokenIs(token.COMMA) {
 		p.nextToken()
-		p.nextToken()
-		ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
-		identifiers = append(identifiers, ident)
+		ident := p.parsePattern()
+		patterns = append(patterns, ident)
 	}
 
 	if !p.expectPeek(token.RPAREN) {
 		return nil
 	}
 
-	return identifiers
+	return patterns
 }
 
 func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
@@ -423,6 +406,31 @@ func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
 	}
 
 	return args
+}
+
+func (p *Parser) parsePattern() ast.Pattern {
+	if p.peekTokenIs(token.LBRACKET) {
+		p.nextToken()
+		pattern := &ast.ArrayPattern{Token: p.curToken}
+		for !p.peekTokenIs(token.RBRACKET) {
+			if !p.peekTokenIs(token.IDENT) {
+				return nil
+			}
+			p.nextToken()
+			pattern.Pattern = append(pattern.Pattern, &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal})
+			if p.peekTokenIs(token.COMMA) {
+				p.nextToken()
+			}
+		}
+		p.nextToken()
+		return pattern
+	} else if p.peekTokenIs(token.IDENT) {
+		fmt.Println("token")
+		p.nextToken()
+		return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	} else {
+		return nil
+	}
 }
 
 func (p *Parser) curTokenIs(t token.TokenType) bool {

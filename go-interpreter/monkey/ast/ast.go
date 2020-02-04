@@ -421,3 +421,28 @@ func (ap *ArrayPattern) String() string {
 
 	return out.String()
 }
+
+type HashPattern struct {
+	pattern
+	Token   token.Token
+	Pattern []*Identifier
+}
+
+func (hp *HashPattern) TokenLiteral() string {
+	return hp.Token.Literal
+}
+
+func (hp *HashPattern) String() string {
+	var out bytes.Buffer
+
+	patterns := []string{}
+	for _, p := range hp.Pattern {
+		patterns = append(patterns, p.String())
+	}
+
+	out.WriteRune('{')
+	out.WriteString(strings.Join(patterns, ", "))
+	out.WriteRune('}')
+
+	return out.String()
+}

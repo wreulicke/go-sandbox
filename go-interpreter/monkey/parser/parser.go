@@ -409,7 +409,10 @@ func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
 }
 
 func (p *Parser) parsePattern() ast.Pattern {
-	if p.peekTokenIs(token.LBRACKET) {
+	if p.peekTokenIs(token.IDENT) {
+		p.nextToken()
+		return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	} else if p.peekTokenIs(token.LBRACKET) {
 		p.nextToken()
 		pattern := &ast.ArrayPattern{Token: p.curToken}
 		for !p.peekTokenIs(token.RBRACKET) {
@@ -420,9 +423,18 @@ func (p *Parser) parsePattern() ast.Pattern {
 		}
 		p.nextToken()
 		return pattern
-	} else if p.peekTokenIs(token.IDENT) {
+	} else if p.peekTokenIs(token.LBRACE) {
 		p.nextToken()
-		return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+		pattern := &ast.HashPattern{Token: p.curToken}
+		for !p.peekTokenIs(token.RBRACE) {
+			p.nextToken()
+			pattern.Pattern = append(pattern.Pattern, p.parseIdentifier().(*ast.Identifier))
+			if p.peekTokenIs(token.COMMA) {
+				p.nextToken()
+			}
+		}
+		p.nextToken()
+		return pattern
 	} else {
 		return nil
 	}

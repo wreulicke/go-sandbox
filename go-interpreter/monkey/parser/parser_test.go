@@ -86,6 +86,38 @@ func TestParsingFunctionLiteralWithArrayPattern(t *testing.T) {
 						},
 					},
 				}}},
+		{"fn ({x, y}) { x }",
+			[]ast.Pattern{
+				&ast.ArrayPattern{
+					Token: token.Token{
+						Type:    token.LBRACKET,
+						Literal: "[",
+					},
+					Pattern: []ast.Pattern{
+						&ast.ArrayPattern{
+							Token: token.Token{
+								Type:    token.LBRACKET,
+								Literal: "[",
+							},
+							Pattern: []ast.Pattern{
+								&ast.Identifier{
+									Token: token.Token{
+										Type:    token.IDENT,
+										Literal: "x",
+									},
+									Value: "x",
+								},
+							},
+						},
+						&ast.Identifier{
+							Token: token.Token{
+								Type:    token.IDENT,
+								Literal: "y",
+							},
+							Value: "y",
+						},
+					},
+				}}},
 	}
 
 	for i, tt := range infixTests {

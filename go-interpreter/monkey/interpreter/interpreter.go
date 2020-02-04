@@ -116,6 +116,20 @@ func bindPattern(env *object.Environment, pattern ast.Pattern, val object.Object
 				bindPattern(env, v, array.Elements[idx])
 			}
 		}
+	case *ast.HashPattern:
+		hash, ok := val.(*object.Hash)
+		if !ok {
+			return newError("initializer is not Hash. cannot destruct. got=%T", val)
+		}
+		for _, v := range node.Pattern {
+			string := object.String{Value: v.String()}
+			hashKey := string.HashKey()
+			pair, ok := hash.Pairs[hashKey]
+			if ok {
+				bindPattern(env, v, pair.Value)
+			}
+		}
+
 	}
 	return nil
 }
@@ -155,6 +169,7 @@ func extendFunctionEnv(function *object.Function, args []object.Object) *object.
 	env := function.Env.NewEnclosedEnvironment()
 
 	for paramIdx, param := range function.Parameters {
+		fmt.Printf("%T %s\n", param, param.String())
 		bindPattern(env, param, args[paramIdx])
 	}
 	return env

@@ -20,6 +20,8 @@ func TestPipelineOperatorExpressions(t *testing.T) {
 		// Array Pattern
 		{`[1, 2] | fn([x, y]) { x + y }`, 3},
 		{`[[1], 2] | fn([[x], y]) { x + y }`, 3},
+		// HashPattern
+		{`{"x": 1, "y": 2} | fn({x, y}) { x + y }`, 3},
 
 		// builtins
 		{`[1, 2] | len`, 2},

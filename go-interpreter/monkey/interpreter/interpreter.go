@@ -113,9 +113,7 @@ func bindPattern(env *object.Environment, pattern ast.Pattern, val object.Object
 		}
 		for idx, v := range node.Pattern {
 			if idx < len(array.Elements) {
-				env.Set(v.Value, array.Elements[idx])
-			} else {
-				env.Set(v.Value, NULL)
+				bindPattern(env, v, array.Elements[idx])
 			}
 		}
 	}

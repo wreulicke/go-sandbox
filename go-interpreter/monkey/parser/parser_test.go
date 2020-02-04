@@ -20,7 +20,7 @@ func TestParsingFunctionLiteralWithArrayPattern(t *testing.T) {
 					Type:    token.LBRACKET,
 					Literal: "[",
 				},
-				Pattern: []*ast.Identifier{
+				Pattern: []ast.Pattern{
 					&ast.Identifier{
 						Token: token.Token{
 							Type:    token.IDENT,
@@ -37,13 +37,45 @@ func TestParsingFunctionLiteralWithArrayPattern(t *testing.T) {
 						Type:    token.LBRACKET,
 						Literal: "[",
 					},
-					Pattern: []*ast.Identifier{
+					Pattern: []ast.Pattern{
 						&ast.Identifier{
 							Token: token.Token{
 								Type:    token.IDENT,
 								Literal: "x",
 							},
 							Value: "x",
+						},
+						&ast.Identifier{
+							Token: token.Token{
+								Type:    token.IDENT,
+								Literal: "y",
+							},
+							Value: "y",
+						},
+					},
+				}}},
+		{"fn ([[x], y]) { x }",
+			[]ast.Pattern{
+				&ast.ArrayPattern{
+					Token: token.Token{
+						Type:    token.LBRACKET,
+						Literal: "[",
+					},
+					Pattern: []ast.Pattern{
+						&ast.ArrayPattern{
+							Token: token.Token{
+								Type:    token.LBRACKET,
+								Literal: "[",
+							},
+							Pattern: []ast.Pattern{
+								&ast.Identifier{
+									Token: token.Token{
+										Type:    token.IDENT,
+										Literal: "x",
+									},
+									Value: "x",
+								},
+							},
 						},
 						&ast.Identifier{
 							Token: token.Token{
@@ -952,8 +984,8 @@ func TestLetStatementWithArrayPattern(t *testing.T) {
 		t.Errorf("letStmt.Pattern is not ArrayPattern. got=%T", letStmt.Pattern)
 	}
 
-	testIdentifier(t, patterns.Pattern[0], "x")
-	testIdentifier(t, patterns.Pattern[1], "y")
+	testIdentifier(t, patterns.Pattern[0].(*ast.Identifier), "x")
+	testIdentifier(t, patterns.Pattern[1].(*ast.Identifier), "y")
 }
 
 func TestLetStatement(t *testing.T) {

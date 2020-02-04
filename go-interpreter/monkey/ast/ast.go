@@ -400,7 +400,7 @@ type Pattern interface {
 type ArrayPattern struct {
 	pattern
 	Token   token.Token
-	Pattern []*Identifier
+	Pattern []Pattern
 }
 
 func (ap *ArrayPattern) TokenLiteral() string {

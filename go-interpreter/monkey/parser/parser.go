@@ -413,11 +413,7 @@ func (p *Parser) parsePattern() ast.Pattern {
 		p.nextToken()
 		pattern := &ast.ArrayPattern{Token: p.curToken}
 		for !p.peekTokenIs(token.RBRACKET) {
-			if !p.peekTokenIs(token.IDENT) {
-				return nil
-			}
-			p.nextToken()
-			pattern.Pattern = append(pattern.Pattern, &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal})
+			pattern.Pattern = append(pattern.Pattern, p.parsePattern())
 			if p.peekTokenIs(token.COMMA) {
 				p.nextToken()
 			}
@@ -425,7 +421,6 @@ func (p *Parser) parsePattern() ast.Pattern {
 		p.nextToken()
 		return pattern
 	} else if p.peekTokenIs(token.IDENT) {
-		fmt.Println("token")
 		p.nextToken()
 		return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 	} else {

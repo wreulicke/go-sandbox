@@ -26,6 +26,7 @@ func mainInternal() error {
 	if err != nil {
 		return err
 	}
+	defer m.Close()
 	return m.Up()
 }
 
